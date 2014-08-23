@@ -1,6 +1,5 @@
 (function(global) {
 
-
 /**
  * The main game context.
  */
@@ -11,6 +10,8 @@ function Game(canvas) {
   this.delta_time_ = 0.0;
   this.width = canvas.width;
   this.height = canvas.height;
+
+  this.camera_ = new Camera();
 }
 
 /** 
