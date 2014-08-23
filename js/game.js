@@ -74,16 +74,30 @@ Game.prototype.Start = function() {
   this.camera_ = new Camera(60, this.width / this.height);
   this.proj_ = this.camera_.GetProjectionMatrix();
 
-  this.basic_ = new Material(SHADERS.Basic.vs, SHADERS.Basic.fs,
+  this.start_ = new Material(SHADERS.Start.vs, SHADERS.Start.fs,
+    ['model', 'view', 'proj'], ['position', 'normal']);
+  this.red_ = new Material(SHADERS.Red.vs, SHADERS.Red.fs,
     ['model', 'view', 'proj'], ['position', 'normal']);
   var v3 = vec3.create();
   this.cube_trans_ = mat4.create();
   mat4.translate(this.cube_trans_, this.cube_trans_, v3);
 
-  this.materials_ = [this.basic_];
-  this.playert = 0;
+  this.materials_ = [this.start_, this.red_];
+
+  this.worlds_ = [new StartWorld(this.start_), new StartWorld(this.red_)];
+  this.current_world_ = this.worlds_[0];
 
   this.tunnel_gen_ = new TunnelGenerator(new WorldGenerator([]));
+
+  document.querySelector('body').addEventListener('keydown', function(e) {
+    if (e.keyCode == 32)
+      this.current_world_ = this.worlds_[1];
+  }.bind(this));
+
+  document.querySelector('body').addEventListener('keyup', function(e) {
+    if (e.keyCode == 32)
+      this.current_world_ = this.worlds_[0];
+  }.bind(this));
 
   return true;
 }
@@ -120,7 +134,7 @@ Game.prototype.Tick = function() {
   
   for (var i = 0; i < this.tunnel_gen_.tunnels_.length; ++i) {
     this.Draw(this.tunnel_gen_.tunnels_[i].mesh_,
-              this.basic_, this.cube_trans_, []);
+              this.current_world_.material(), this.cube_trans_, []);
   }
 
   window.requestAnimationFrame(this.Tick.bind(this));

@@ -82,6 +82,10 @@ TunnelGenerator.prototype.Generate = function() {
   // Generates portals, powerups and other fun stuff.
   this.world_gen_.Generate(t, this.generate_count_);
 
+  // Link with predecessor
+  if (this.tunnels_.length)
+    this.tunnels_[this.tunnels_.length - 1].next_ = t;
+
   this.tunnels_.push(t);
 
   if (this.tunnels_.length > kTunnelsForward + kTunnelsBack)

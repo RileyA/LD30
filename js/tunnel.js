@@ -1,5 +1,7 @@
 (function(global) {
 
+var kObjectOrientationLookAhead = 0.1;
+
 function angle_between(q, v1, v2) {
   var w = vec3.create();
   vec3.cross(w, v1, v2);
@@ -102,6 +104,28 @@ function Tunnel(spline, pts, rings, radius, prev_ori, pts_prev) {
   this.mesh_ = new Mesh(verts, indices);
   this.next_pts_ = pts_next;
   this.next_ori_ = next_ori;
+}
+
+Tunnel.prototype.GetTransform = function(t) {
+  function lookup_pos(t) {
+    var tn = this;
+    while (t > 1.0) {
+      if (tn.next) {
+        t -= 1.0;
+        tn = this.next_;
+      } else {
+        t = 1.0;
+      }
+    }
+    return tn.spline_.GetPosition(t);
+  }
+  var pos = lookup_pos(t);
+  var pos_next = lookup_pos(t + kObjectOrientationLookAhead);
+
+  var q = quat.create();
+  angle_between(q, pos, pos2);
+
+  return mat4.fromRotationTranslation(out, q, pos);
 }
 
 global.Tunnel = Tunnel;
