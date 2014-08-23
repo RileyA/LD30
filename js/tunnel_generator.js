@@ -36,7 +36,8 @@ function angle_between(q, v1, v2) {
   return q;
 }
 
-function TunnelGenerator() {
+function TunnelGenerator(world_gen) {
+  this.world_gen_ = world_gen;
   this.player_t_ = 0.0;
   this.current_tunnel_ = null;
 
@@ -51,12 +52,13 @@ function TunnelGenerator() {
   }
 
   this.current_tunnel_ = this.tunnels_[0];
+  this.generate_count_ = 0;
 }
 
 TunnelGenerator.prototype.Generate = function() {
   var s = new Spline();
 
-  console.log('generate');
+  ++this.generate_count_;
 
   // It's 4am and this is terribad... dat c1 continuity doe.
   s.AddPoint(this.next_next_last_spline_pt_);
@@ -76,6 +78,9 @@ TunnelGenerator.prototype.Generate = function() {
                      this.prev_pts_);
   this.prev_ori_ = t.next_ori_;
   this.prev_pts_ = t.next_pts_;
+
+  // Generates portals, powerups and other fun stuff.
+  this.world_gen_.Generate(t, this.generate_count_);
 
   this.tunnels_.push(t);
 

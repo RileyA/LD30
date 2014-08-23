@@ -83,7 +83,7 @@ Game.prototype.Start = function() {
   this.materials_ = [this.basic_];
   this.playert = 0;
 
-  this.tunnel_gen_ = new TunnelGenerator();
+  this.tunnel_gen_ = new TunnelGenerator(new WorldGenerator([]));
 
   return true;
 }
@@ -97,6 +97,9 @@ Game.prototype.Tick = function() {
   var now = this.now();
   this.delta_time_ = now - this.last_time_;
   this.last_time_ = now;
+
+  if (this.delta_time_ > 100)
+    this.delta_time_ = 100;
 
   this.tunnel_gen_.AdvancePlayer(this.delta_time_ / 1000,
       this.camera_.position_, this.camera_.direction_);
