@@ -1,6 +1,7 @@
 (function(global) {
 
 // There's few enough of these that I don't feel bad hardcoding them.
+// See resources/ply2js.cc for a terrible converter.
 var MESHES = {
 Cube : {
 verts : new Float32Array([

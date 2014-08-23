@@ -30,10 +30,10 @@ Spline.prototype.GetPosition = function(t) {
   //  return;
   //}
 
-  var c0 = ((-t + 2.0) * t - 1.0) * t * 0.5;
-  var c1 = (((3.0 * t - 5.0) * t) * t + 2.0) * 0.5;
-  var c2 = ((-3.0 * t + 4.0) * t + 1.0) * t * 0.5;
-  var c3 = ((t - 1.0) * t * t) * 0.5;
+  var c0 = ((-r + 2.0) * r - 1.0) * r * 0.5;
+  var c1 = (((3.0 * r - 5.0) * r) * r + 2.0) * 0.5;
+  var c2 = ((-3.0 * r + 4.0) * r + 1.0) * r * 0.5;
+  var c3 = ((r - 1.0) * r * r) * 0.5;
 
   var out = vec3.create();
   out[0] = 0;
