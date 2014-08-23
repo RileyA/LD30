@@ -13,7 +13,7 @@ Spline.prototype.AddPoint = function(pt) {
   this.points_.push(pt);
 }
 
-Spline.prototype.GetPosition = function(t) {
+Spline.prototype.GetPosition = function(t, p) {
   var iF = t * (this.points_.length - 3); // ignore endpoints
   var i = Math.floor(iF);
 
@@ -35,7 +35,9 @@ Spline.prototype.GetPosition = function(t) {
   var c2 = ((-3.0 * r + 4.0) * r + 1.0) * r * 0.5;
   var c3 = ((r - 1.0) * r * r) * 0.5;
 
-  var out = vec3.create();
+  var out;
+  if (p) out = p
+  else out = vec3.create();
   out[0] = 0;
   out[1] = 0;
   out[2] = 0;

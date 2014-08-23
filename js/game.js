@@ -76,27 +76,14 @@ Game.prototype.Start = function() {
 
   this.basic_ = new Material(SHADERS.Basic.vs, SHADERS.Basic.fs,
     ['model', 'view', 'proj'], ['position', 'normal']);
-  this.cube_ = new Mesh(MESHES.Cube.verts, MESHES.Cube.indices);
-  this.cube
   var v3 = vec3.create();
-  v3[1] = 2;
-  v3[2] = -10;
   this.cube_trans_ = mat4.create();
   mat4.translate(this.cube_trans_, this.cube_trans_, v3);
 
-  var s = new Spline();
-  s.AddPoint(vec3.fromValues(0.0, 0.0, 0.0));
-  s.AddPoint(vec3.fromValues(0.0, 0.0, 0.0));
-  s.AddPoint(vec3.fromValues(0.0, 0.0, -10.0));
-  s.AddPoint(vec3.fromValues(0.0, 0.0, -20.0));
-  s.AddPoint(vec3.fromValues(0.0, 0.0, -30.0));
-  s.AddPoint(vec3.fromValues(0.0, 0.0, -40.0));
-  s.AddPoint(vec3.fromValues(0.0, 0.0, -50.0));
-  s.AddPoint(vec3.fromValues(0.0, 0.0, -50.0));
-  console.log(s);
-  this.t = new Tunnel(s, 8, 20, 7, quat.create());
-
   this.materials_ = [this.basic_];
+  this.playert = 0;
+
+  this.tunnel_gen_ = new TunnelGenerator();
 
   return true;
 }
@@ -111,6 +98,11 @@ Game.prototype.Tick = function() {
   this.delta_time_ = now - this.last_time_;
   this.last_time_ = now;
 
+  this.tunnel_gen_.AdvancePlayer(this.delta_time_ / 1000,
+      this.camera_.position_, this.camera_.direction_);
+  //this.camera_.direction_ = quat.create();
+  this.camera_.InvalidateMatrix();
+
   mat4.copy(this.view_, this.camera_.GetViewMatrix());
   mat4.invert(this.view_, this.view_);
 
@@ -123,9 +115,10 @@ Game.prototype.Tick = function() {
                         this.proj_);
   }
   
-  //mat4.rotateY(this.cube_trans_, this.cube_trans_, this.delta_time_ / 1000);
-  this.Draw(this.cube_, this.basic_, this.cube_trans_, []);
-  this.Draw(this.t.mesh_, this.basic_, this.cube_trans_, []);
+  for (var i = 0; i < this.tunnel_gen_.tunnels_.length; ++i) {
+    this.Draw(this.tunnel_gen_.tunnels_[i].mesh_,
+              this.basic_, this.cube_trans_, []);
+  }
 
   window.requestAnimationFrame(this.Tick.bind(this));
 }
