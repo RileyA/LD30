@@ -44,7 +44,7 @@ Game.prototype.Start = function() {
   var attributes = {
     alpha: false,
     depth: false,
-    stencil: false,
+    stencil: true, // portallssss :D
     antialias: false,
     premultipliedAlpha: true,
     preserveDrawingBuffer: false
