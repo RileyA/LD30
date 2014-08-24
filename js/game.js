@@ -43,6 +43,8 @@ function Game(canvas) {
   this.modelview_ = mat4.create();
   this.paused_ = false;
 
+  this.playerpos = vec3.create();
+
   this.roll_ = 0;
 }
 
@@ -217,10 +219,13 @@ Game.prototype.Tick = function() {
     this.world_idx_next_ = -1;
   }
 
-  var old_pos = vec3.clone(this.camera_.position_);
+  var old_pos = vec3.clone(this.playerpos);
+  var motion = this.delta_time_ / 1000 * 100;
+  this.playerpos[2] -= motion;
 
-  this.tunnel_gen_.AdvancePlayer(this.delta_time_ / 1000.0 * this.player_speed_,
-      this.camera_.position_, this.camera_.direction_);
+  console.log(this.playerpos);
+
+  this.tunnel_gen_.AdvancePlayer(-motion);
 
   var offset = vec3.create();
   offset[0] = this.cam_x;
@@ -233,18 +238,12 @@ Game.prototype.Tick = function() {
     this.roll_ -= this.delta_time_ / 1500;
   }
 
+  this.camera_.direction_ = quat.create();
   quat.rotateZ(this.camera_.direction_, this.camera_.direction_, this.roll_);
-
   vec3.transformQuat(offset, offset, this.camera_.direction_);
-
-  vec3.add(this.camera_.position_, this.camera_.position_, offset);
-
-  //this.camera_.direction_ = quat.create();
+  vec3.add(this.camera_.position_, this.playerpos, offset);
   this.camera_.InvalidateMatrix();
-
   this.last_distance = vec3.distance(old_pos, this.camera_.position_);
-  console.log(this.last_distance);
-
   mat4.copy(this.view_, this.camera_.GetViewMatrix());
   mat4.invert(this.view_, this.view_);
 

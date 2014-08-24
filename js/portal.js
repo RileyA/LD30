@@ -40,6 +40,8 @@ function tri_check(p, t0, t1, t2) {
 Portal.prototype.Draw = function(game) {
   if (global_clip < this.transform_[14])
     return;
+  if (game.playerpos[2] < this.transform_[14])
+    return;
 
   var pos = game.camera_.position_;
 

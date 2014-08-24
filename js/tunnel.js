@@ -2,27 +2,17 @@
 
 var kObjectOrientationLookAhead = 0.1;
 
-function angle_between(q, v1, v2) {
-  var w = vec3.create();
-  vec3.cross(w, v1, v2);
-  q[3] = 1.0 + vec3.dot(v1, v2);
-  q[0] = w[0];
-  q[1] = w[1];
-  q[2] = w[2];
-  quat.normalize(q, q);
-  return q;
-}
+var kTunnelLen = -160;
 
 /**
  * The main level element in the game.
  */
-function Tunnel(spline, pts, rings, radius, prev_ori, pts_prev) {
-  this.spline_ = spline;
+function Tunnel(idx, pts, rings, radius, pts_prev) {
+  this.idx = idx;
 
   this.children_ = [];
 
-  prev_pos = spline.GetPosition(0.0);
-  next_ori = quat.create();
+  prev_pos = vec3.fromValues(0, 0, this.idx * kTunnelLen);
 
   var verts = new Float32Array(pts * 2 * (rings - 1) * 3 * 6);
   var indices = new Uint16Array(pts * 2 * (rings - 1) * 3);
@@ -37,7 +27,6 @@ function Tunnel(spline, pts, rings, radius, prev_ori, pts_prev) {
       v[0] = Math.sin(angle) * radius;
       v[1] = Math.cos(angle) * radius;
       v[2] = 0.0;
-      vec3.transformQuat(v, v, prev_ori);
       vec3.add(v, v, prev_pos);
       vec3.add(v, v, vec3.fromValues(2 * Math.random() - 1.0,
                2 * Math.random() - 1.0, 2 * Math.random() - 1.0));
@@ -53,9 +42,8 @@ function Tunnel(spline, pts, rings, radius, prev_ori, pts_prev) {
 
   for (var i = 1; i < rings; ++i) {
     // for each face...
-    next_pos = spline.GetPosition(i / (rings - 1));
-    angle_between(next_ori, prev_pos, next_pos);
-    
+    next_pos = vec3.fromValues(0.0, 0.0, prev_pos[2] + (kTunnelLen / (rings - 1)));
+
     // Generate pts_next
     for (var j = 0; j < pts; ++j) {
       var v = pts_next[j];
@@ -63,9 +51,7 @@ function Tunnel(spline, pts, rings, radius, prev_ori, pts_prev) {
       v[0] = Math.sin(angle) * radius;
       v[1] = Math.cos(angle) * radius;
       v[2] = 0.0;
-      vec3.transformQuat(v, v, next_ori);
       vec3.add(v, v, next_pos);
-    //vec3.add(v, v, vec3.fromValues(Math.random() - 0.5, Math.random() - 0.5, 0.0));
       vec3.add(v, v, vec3.fromValues(2 * Math.random() - 1.0,
                2 * Math.random() - 1.0, 2 * Math.random() - 1.0));
     }
@@ -107,25 +93,12 @@ function Tunnel(spline, pts, rings, radius, prev_ori, pts_prev) {
   }
   this.mesh_ = new Mesh(verts, indices);
   this.next_pts_ = pts_next;
-  this.next_ori_ = next_ori;
 }
 
 Tunnel.prototype.GetTransform = function(t, v, q) {
-  function lookup_pos(t_val, tn) {
-    if (t_val > 1.0) {
-      if (tn.next_) {
-        t_val -= 1.0;
-        tn = tn.next_;
-      } else {
-        t_val = 1.0;
-      }
-    }
-    return tn.spline_.GetPosition(t_val);
-  }
-  vec3.copy(v, lookup_pos(t, this));
-  var pos_next = lookup_pos(t + kObjectOrientationLookAhead, this);
-
-  angle_between(q, v, pos_next);
+  v[0] = 0;
+  v[1] = 0;
+  v[2] = kTunnelLen * t + this.idx * kTunnelLen;
 }
 
 global.Tunnel = Tunnel;

@@ -8,6 +8,8 @@ var kYEntropy = 0.0;
 var kZLength = -40;
 var kSplinePts = 5;
 
+var kTunnelLen = -160;
+
 var kLookAhead = 0.095;
 
 var kRings = 14;
@@ -38,46 +40,24 @@ function angle_between(q, v1, v2) {
 
 function TunnelGenerator(world_gen) {
   this.world_gen_ = world_gen;
-  this.player_t_ = 0.5;
+  this.player_t_ = 0;
   this.current_tunnel_ = null;
-
-  this.last_spline_pt_ = vec3.create();
-  this.next_last_spline_pt_ = vec3.create();
-  this.next_next_last_spline_pt_ = vec3.create();
-  this.prev_ori_ = quat.create();
+  this.generate_count_ = 0;
 
   this.tunnels_ = [];
-  for (var i = 0; i < kTunnelsForward + kTunnelsBack; ++i) {
+  for (var i = 0; i < kTunnelsForward + kTunnelsBack - 1; ++i) {
     this.Generate();
   }
 
   this.current_tunnel_ = this.tunnels_[0];
-  this.generate_count_ = 0;
 }
 
 TunnelGenerator.prototype.Generate = function() {
-  var s = new Spline();
-
+  var t = new Tunnel(this.generate_count_, kPoints, kRings, kRadius,
+                     this.prev_pts_);
+  this.prev_pts_ = t.next_pts_;
   ++this.generate_count_;
 
-  // It's 4am and this is terribad... dat c1 continuity doe.
-  s.AddPoint(this.next_next_last_spline_pt_);
-  s.AddPoint(this.next_last_spline_pt_);
-  s.AddPoint(this.last_spline_pt_);
-
-  for (var i = 0; i < kSplinePts - 1; ++i) {
-    var v = gen_point();
-    vec3.add(v, v, this.last_spline_pt_);
-    s.AddPoint(v);
-    this.next_next_last_spline_pt_ = this.last_spline_pt_;
-    this.next_last_spline_pt_ = this.last_spline_pt_;
-    this.last_spline_pt_ = v;
-  }
-
-  var t = new Tunnel(s, kPoints, kRings, kRadius, this.prev_ori_,
-                     this.prev_pts_);
-  this.prev_ori_ = t.next_ori_;
-  this.prev_pts_ = t.next_pts_;
 
   // Generates portals, powerups and other fun stuff.
   this.world_gen_.Generate(t, this.generate_count_);
@@ -92,30 +72,13 @@ TunnelGenerator.prototype.Generate = function() {
     this.tunnels_.shift();
 }
 
-TunnelGenerator.prototype.AdvancePlayer = function(amount, v, q) {
+TunnelGenerator.prototype.AdvancePlayer = function(amount) {
   this.player_t_ += amount;
-
-  if (this.player_t_ > 1.0) {
-    this.player_t_ -= 1.0;
+  if (this.player_t_ < kTunnelLen) {
+    this.player_t_ -= kTunnelLen;
     this.current_tunnel_ = this.tunnels_[1];
     this.Generate();
   }
-
-  var current = this.current_tunnel_.spline_.GetPosition(this.player_t_, v);
-
-  var next_t = this.player_t_ + kLookAhead;
-  var next_tunnel = this.current_tunnel_;
-
-  if (next_t > 1.0) {
-    next_t -= 1.0;
-    next_tunnel = this.tunnels_[1];
-  }
-
-  var next = next_tunnel.spline_.GetPosition(next_t);
-
-  angle_between(q, current, next);
-
-  return current;
 }
 
 global.TunnelGenerator = TunnelGenerator;
