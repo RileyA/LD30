@@ -1,16 +1,16 @@
 (function(global) {
 
-var kTunnelsForward = 5;
+var kTunnelsForward = 3;
 var kTunnelsBack = 1;
 
-var kXEntropy = 3.0;
-var kYEntropy = 3.0;
-var kZLength = -20;
+var kXEntropy = 0.0;
+var kYEntropy = 0.0;
+var kZLength = -40;
 var kSplinePts = 5;
 
-var kLookAhead = 0.425;
+var kLookAhead = 0.095;
 
-var kRings = 10;
+var kRings = 14;
 var kPoints = 10;
 var kRadius = 10;
 
@@ -38,7 +38,7 @@ function angle_between(q, v1, v2) {
 
 function TunnelGenerator(world_gen) {
   this.world_gen_ = world_gen;
-  this.player_t_ = 0.0;
+  this.player_t_ = 0.5;
   this.current_tunnel_ = null;
 
   this.last_spline_pt_ = vec3.create();

@@ -1,8 +1,7 @@
 (function(global) {
 
-
 /** Pretty tame and blue. */
-function StartWorld(game, material, idx) {
+function RotateWorld(game, material, idx) {
   this.game_ = game;
   this.material_ = material;
   this.i = idx;
@@ -10,9 +9,9 @@ function StartWorld(game, material, idx) {
   this.last_portal_ = false;
 }
 
-StartWorld.prototype.Generate = function(tunnel, progress) {
+RotateWorld.prototype.Generate = function(tunnel, progress) {
   var portaled = false;
-  for (var t = 0.2; t < 0.9; t += 0.2) {
+  for (var t = 0.1; t < 0.89; t += 0.2) {
     if (!tunnel.children_[this.i])
       tunnel.children_[this.i] = new Array();
     var r = Math.random();
@@ -45,20 +44,21 @@ StartWorld.prototype.Generate = function(tunnel, progress) {
     }
   }
 
-  if (!portaled)
+  if (!portaled) 
     this.last_portal_ = false;
 }
 
-StartWorld.prototype.name = function() { return 'Start'; }
+RotateWorld.prototype.name = function() { return 'Rotate'; }
 
-StartWorld.prototype.min_progress = function() {
-  return 0;
+RotateWorld.prototype.min_progress = function() {
+  return 10;
 }
 
-StartWorld.prototype.material = function() {
+RotateWorld.prototype.material = function() {
   return this.material_;
 }
 
-global.StartWorld = StartWorld;
+global.RotateWorld = RotateWorld;
 
 })(window);
+

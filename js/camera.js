@@ -5,7 +5,7 @@ function Camera(fov, aspect) {
   this.direction_ = quat.create();
   fov = fov * Math.PI / 180.0;
   this.projection_ = mat4.create();
-  mat4.perspective(this.projection_, fov, aspect, 0.1, 200.0);
+  mat4.perspective(this.projection_, fov, aspect, 0.1, 300.0);
   this.view_ = mat4.create();
   this.view_dirty_ = true;
   this.GetViewMatrix();

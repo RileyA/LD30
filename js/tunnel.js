@@ -19,6 +19,8 @@ function angle_between(q, v1, v2) {
 function Tunnel(spline, pts, rings, radius, prev_ori, pts_prev) {
   this.spline_ = spline;
 
+  this.children_ = [];
+
   prev_pos = spline.GetPosition(0.0);
   next_ori = quat.create();
 
@@ -37,8 +39,8 @@ function Tunnel(spline, pts, rings, radius, prev_ori, pts_prev) {
       v[2] = 0.0;
       vec3.transformQuat(v, v, prev_ori);
       vec3.add(v, v, prev_pos);
-      vec3.add(v, v, vec3.fromValues(Math.random() - 0.5,
-               Math.random() - 0.5, 0.0));
+      vec3.add(v, v, vec3.fromValues(2 * Math.random() - 1.0,
+               2 * Math.random() - 1.0, 2 * Math.random() - 1.0));
       pts_prev.push(v);
     }
   }
@@ -63,7 +65,9 @@ function Tunnel(spline, pts, rings, radius, prev_ori, pts_prev) {
       v[2] = 0.0;
       vec3.transformQuat(v, v, next_ori);
       vec3.add(v, v, next_pos);
-    vec3.add(v, v, vec3.fromValues(Math.random() - 0.5, Math.random() - 0.5, 0.0));
+    //vec3.add(v, v, vec3.fromValues(Math.random() - 0.5, Math.random() - 0.5, 0.0));
+      vec3.add(v, v, vec3.fromValues(2 * Math.random() - 1.0,
+               2 * Math.random() - 1.0, 2 * Math.random() - 1.0));
     }
 
     function add_vert(pos, normal) {
@@ -106,26 +110,22 @@ function Tunnel(spline, pts, rings, radius, prev_ori, pts_prev) {
   this.next_ori_ = next_ori;
 }
 
-Tunnel.prototype.GetTransform = function(t) {
-  function lookup_pos(t) {
-    var tn = this;
-    while (t > 1.0) {
-      if (tn.next) {
-        t -= 1.0;
-        tn = this.next_;
+Tunnel.prototype.GetTransform = function(t, v, q) {
+  function lookup_pos(t_val, tn) {
+    if (t_val > 1.0) {
+      if (tn.next_) {
+        t_val -= 1.0;
+        tn = tn.next_;
       } else {
-        t = 1.0;
+        t_val = 1.0;
       }
     }
-    return tn.spline_.GetPosition(t);
+    return tn.spline_.GetPosition(t_val);
   }
-  var pos = lookup_pos(t);
-  var pos_next = lookup_pos(t + kObjectOrientationLookAhead);
+  vec3.copy(v, lookup_pos(t, this));
+  var pos_next = lookup_pos(t + kObjectOrientationLookAhead, this);
 
-  var q = quat.create();
-  angle_between(q, pos, pos2);
-
-  return mat4.fromRotationTranslation(out, q, pos);
+  angle_between(q, v, pos_next);
 }
 
 global.Tunnel = Tunnel;

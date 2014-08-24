@@ -1,8 +1,7 @@
 (function(global) {
 
-
 /** Pretty tame and blue. */
-function StartWorld(game, material, idx) {
+function RippleWorld(game, material, idx) {
   this.game_ = game;
   this.material_ = material;
   this.i = idx;
@@ -10,13 +9,13 @@ function StartWorld(game, material, idx) {
   this.last_portal_ = false;
 }
 
-StartWorld.prototype.Generate = function(tunnel, progress) {
+RippleWorld.prototype.Generate = function(tunnel, progress) {
   var portaled = false;
   for (var t = 0.2; t < 0.9; t += 0.2) {
     if (!tunnel.children_[this.i])
       tunnel.children_[this.i] = new Array();
     var r = Math.random();
-    if (r < 0.3) {
+    if (r < 0.3 && false) {
       var pos = vec3.create();
       var ori = quat.create();
       tunnel.GetTransform(t, pos, ori);
@@ -29,7 +28,7 @@ StartWorld.prototype.Generate = function(tunnel, progress) {
       tunnel.GetTransform(t, pos, ori);
       tunnel.children_[this.i].push(new Obstacle(this.game_.obstacle_,
         this.material_, pos, ori));
-    } else if (r < 0.8 && !portaled && !this.last_portal_) {
+    } else if (r < 0.9 && !portaled && !this.last_portal_) {
       var w = pick_world(this.i, this.game_.worlds_, progress);
       if (!w) {
         continue;
@@ -41,7 +40,7 @@ StartWorld.prototype.Generate = function(tunnel, progress) {
       tunnel.GetTransform(t, pos, ori);
       // teehee game.cube
       tunnel.children_[this.i].push(new Portal(this.game_,
-        this.material_, pos, ori, w, this.game_.worlds_[this.i]));
+        this.material_, pos, ori, w, this));
     }
   }
 
@@ -49,16 +48,16 @@ StartWorld.prototype.Generate = function(tunnel, progress) {
     this.last_portal_ = false;
 }
 
-StartWorld.prototype.name = function() { return 'Start'; }
+RippleWorld.prototype.name = function() { return 'Start'; }
 
-StartWorld.prototype.min_progress = function() {
-  return 0;
+RippleWorld.prototype.min_progress = function() {
+  return 12;
 }
 
-StartWorld.prototype.material = function() {
+RippleWorld.prototype.material = function() {
   return this.material_;
 }
 
-global.StartWorld = StartWorld;
+global.RippleWorld = RippleWorld;
 
 })(window);

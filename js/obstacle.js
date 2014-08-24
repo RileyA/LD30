@@ -1,8 +1,11 @@
 (function(global) {
 
-function Powerup(mesh, material, pos, ori) {
+function Obstacle(mesh, material, pos, ori) {
   this.mesh_ = mesh;
   this.material_ = material;
+
+  quat.rotateZ(ori, ori, Math.random() * Math.PI);
+
 
   var offset = vec3.create();
   offset[0] = Math.random() - 0.5;
@@ -13,20 +16,27 @@ function Powerup(mesh, material, pos, ori) {
   vec3.transformQuat(pos, pos, ori)
   vec3.add(pos, pos, offset);
 
+  this.ori_ = ori;
+  this.pos_ = pos;
+
   this.transform_ = mat4.create();
   mat4.fromRotationTranslation(this.transform_, ori, pos);
 }
 
-Powerup.prototype.Update = function() {
-  // TODO collision detection!
+Obstacle.prototype.Update = function() {
 }
 
-Powerup.prototype.Draw = function(game) {
+Obstacle.prototype.Draw = function(game) {
+
+  // collision check
+  var pos = game.camera_.position_;
+
+
   if (global_clip < this.transform_[14])
     return;
   game.Draw(this.mesh_, this.material_, this.transform_);
 }
 
-global.Powerup = Powerup;
+global.Obstacle = Obstacle;
 
 })(window);
