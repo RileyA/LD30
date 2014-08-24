@@ -1,10 +1,13 @@
 (function(global) {
 
-function Powerup(mesh, material, pos, ori) {
+function Pickup(mesh, material, pos, ori) {
   this.mesh_ = mesh;
   this.material_ = material;
 
   this.pos_ = pos;
+
+  if (Math.random() > 0.5)
+    this.square_ = true;
 
   this.collected_ = false;
 
@@ -21,11 +24,11 @@ function Powerup(mesh, material, pos, ori) {
   mat4.fromRotationTranslation(this.transform_, ori, pos);
 }
 
-Powerup.prototype.Update = function() {
+Pickup.prototype.Update = function() {
   // TODO collision detection!
 }
 
-Powerup.prototype.Draw = function(game) {
+Pickup.prototype.Draw = function(game) {
   if (this.collected_)
     return;
   
@@ -35,10 +38,8 @@ Powerup.prototype.Draw = function(game) {
   if (stencil_val == -1 && !this.collected_) {
     var pos = vec3.clone(game.camera_.position_);
     if (vec3.squaredDistance(this.pos_, pos) < 3.5) {
-      new Sfx('audio/1up.wav', 0.8);
       this.collected_ = true;
-      game.lives_++;
-      document.getElementById('lives_val').textContent = game.lives_;
+      new Sfx('audio/pickup.wav', 0.8);
     }
   }
 
@@ -46,11 +47,21 @@ Powerup.prototype.Draw = function(game) {
   mat4.rotateX(this.transform_, this.transform_, game.delta_time_ / 700);
   mat4.rotateZ(this.transform_, this.transform_, game.delta_time_ / 700);
 
+  //gl.enable(gl.BLEND);
+  //gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+  //gl.polygonMode( gl.FRONT_AND_BACK, gl.LINE );
+  if (this.square_) {
+    game.Draw(game.cube_, this.material_, this.transform_);
+  } else {
+    game.Draw(this.mesh_, this.material_, this.transform_);
+  }
   gl.useProgram(game.solid_.program());
-  gl.uniform3f(game.solid_.program().c_uniform, 0.9, 0.9, 0.9);
-  game.Draw(game.powerup_, game.solid_, this.transform_);
+  gl.uniform3f(game.solid_.program().c_uniform, 0.75, 0.75, 0.75);
+  game.Draw(game.pickup_frame_, game.solid_, this.transform_);
+  //gl.polygonMode( gl.FRONT_AND_BACK, gl.FILL );
+  //gl.disable(gl.BLEND);
 }
 
-global.Powerup = Powerup;
+global.Pickup = Pickup;
 
 })(window);

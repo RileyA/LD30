@@ -1,4 +1,4 @@
-var s;
+var game;
 
 window.onload = function() {
   var ua_result = check_ua();
@@ -8,8 +8,17 @@ window.onload = function() {
     return;
   }
 
-  var game = new Game(document.querySelector('canvas'));
+  game = new Game(document.querySelector('canvas'));
   game.Start();
   game.Tick();
+
+  document.querySelector('button').onclick = function() {
+    game.stopped_ = true;
+    document.getElementById('overlay').style.display = 'none';
+    game = new Game(document.querySelector('canvas'));
+    game.Start();
+    game.Tick();
+  }
 }
+
 

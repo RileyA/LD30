@@ -14,7 +14,7 @@ var kLookAhead = 0.095;
 
 var kRings = 14;
 var kPoints = 10;
-var kRadius = 10;
+var kRadius = 11.125;
 
 function gen_point() {
   var pt = vec3.fromValues(

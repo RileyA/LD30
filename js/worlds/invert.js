@@ -1,14 +1,15 @@
 (function(global) {
 
-function RippleWorld(game, material, idx) {
+/** Pretty tame and blue. */
+function InvertWorld(game, material, idx) {
   this.game_ = game;
   this.material_ = material;
   this.i = idx;
   // We'll only do one portal every other tunnel chunk.
-  this.last_portal_ = false;
+  this.last_portal_ = true;
 }
 
-RippleWorld.prototype.Generate = function(tunnel, progress) {
+InvertWorld.prototype.Generate = function(tunnel, progress) {
 
   if (!tunnel.children_[this.i])
     tunnel.children_[this.i] = new Array();
@@ -42,7 +43,7 @@ RippleWorld.prototype.Generate = function(tunnel, progress) {
     }
   }
 
-  if (progress % 2 == 0) {
+  if (progress % 2) {
     var w = pick_world(this.i, this.game_.worlds_, progress);
     if (w) {
       this.last_portal_ = true;
@@ -57,29 +58,31 @@ RippleWorld.prototype.Generate = function(tunnel, progress) {
     this.last_portal_ = false;
   }
 
+
   /*for (var t = 0.2; t < 0.9; t += 0.2) {
     if (!tunnel.children_[this.i])
       tunnel.children_[this.i] = new Array();
     var r = Math.random();
-    if (r < 0.2) {
+    if (r < 0.1) {
       var pos = vec3.create();
       var ori = quat.create();
       tunnel.GetTransform(t, pos, ori);
-      tunnel.children_[this.i].push(new Pickup(this.game_.cube_,
+      tunnel.children_[this.i].push(new Pickup(this.game_.pickup_,
         this.material_, pos, ori));
-    } else if (r < 0.21) {
+    } else if (r < 0.11) {
       var pos = vec3.create();
       var ori = quat.create();
       tunnel.GetTransform(t, pos, ori);
+      // teehee game.cube
       tunnel.children_[this.i].push(new Powerup(this.game_.cube_,
         this.material_, pos, ori));
-    } else if (r < 0.7) {
+    } else if (r < 0.6) {
       var pos = vec3.create();
       var ori = quat.create();
       tunnel.GetTransform(t, pos, ori);
       tunnel.children_[this.i].push(new Obstacle(this.game_.obstacle_,
         this.material_, pos, ori));
-    } else if (r < 0.9 && !portaled && !this.last_portal_) {
+    } else if (r < 0.8 && !portaled && !this.last_portal_) {
       var w = pick_world(this.i, this.game_.worlds_, progress);
       if (!w) {
         continue;
@@ -91,21 +94,21 @@ RippleWorld.prototype.Generate = function(tunnel, progress) {
       tunnel.GetTransform(t, pos, ori);
       // teehee game.cube
       tunnel.children_[this.i].push(new Portal(this.game_,
-        this.material_, pos, ori, w, this));
+        this.material_, pos, ori, w, this.game_.worlds_[this.i]));
     }
   }*/
 }
 
-RippleWorld.prototype.name = function() { return 'Start'; }
+InvertWorld.prototype.name = function() { return 'Invert'; }
 
-RippleWorld.prototype.min_progress = function() {
-  return 12;
+InvertWorld.prototype.min_progress = function() {
+  return 20;
 }
 
-RippleWorld.prototype.material = function() {
+InvertWorld.prototype.material = function() {
   return this.material_;
 }
 
-global.RippleWorld = RippleWorld;
+global.InvertWorld = InvertWorld;
 
 })(window);

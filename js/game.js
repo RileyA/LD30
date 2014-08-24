@@ -2,9 +2,7 @@
 var portal_renders = new Array();
 var kMaxPortalDepth = 1;
 var global_clip = -100;
-
 var global_clips = [];
-
 var stencil_val = -1;
 
 function pick_world(idx, worlds, progress) {
@@ -34,8 +32,8 @@ function Game(canvas) {
   this.canvas_ = canvas;
   this.last_time_ = 0.0;
   this.delta_time_ = 0.0;
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight - 80;
   this.width = canvas.width;
   this.height = canvas.height;
 
@@ -44,8 +42,19 @@ function Game(canvas) {
   this.paused_ = false;
 
   this.playerpos = vec3.create();
+  this.lives_ = 3;
+  this.stopped_ = false;
 
   this.roll_ = 0;
+
+  this.k_down = false;
+  this.k_up = false;
+  this.k_left = false;
+  this.k_right = false;
+  this.k_w = false;
+  this.k_a = false;
+  this.k_s = false;
+  this.k_d = false;
 }
 
 /** 
@@ -107,32 +116,41 @@ Game.prototype.Start = function() {
   global.gl = gl;
 
   this.cube_ = new Mesh(MESHES.Cube.verts, MESHES.Cube.indices);
+  this.powerup_ = new Mesh(MESHES.Powerup.verts, MESHES.Powerup.indices);
+  this.pickup_ = new Mesh(MESHES.Pickup.verts, MESHES.Pickup.indices);
+  this.pickup_frame_ = new Mesh(MESHES.PickupFrame.verts, MESHES.PickupFrame.indices);
   this.obstacle_ = new Mesh(MESHES.Obstacle.verts, MESHES.Obstacle.indices);
   this.portal_ = new Mesh(MESHES.Portal.verts, MESHES.Portal.indices);
+  this.giant_portal_ = new Mesh(MESHES.GiantPortal.verts, MESHES.GiantPortal.indices);
   this.portal_frame_ = new Mesh(MESHES.PortalFrame.verts,
                                 MESHES.PortalFrame.indices);
 
   // Some basic scene setup.
-  this.camera_ = new Camera(60, this.width / this.height);
+  this.camera_ = new Camera(50, this.width / this.height);
   this.proj_ = this.camera_.GetProjectionMatrix();
 
   this.start_ = new Material(SHADERS.Start.vs, SHADERS.Start.fs,
     ['model', 'view', 'proj'], ['position', 'normal']);
   this.red_ = new Material(SHADERS.Red.vs, SHADERS.Red.fs,
     ['model', 'view', 'proj'], ['position', 'normal']);
+  this.yellow_ = new Material(SHADERS.Yellow.vs, SHADERS.Yellow.fs,
+    ['model', 'view', 'proj'], ['position', 'normal']);
   this.ripple_ = new Material(SHADERS.Ripple.vs, SHADERS.Ripple.fs,
     ['model', 'view', 'proj', 'st'], ['position', 'normal']);
   this.solid_ = new Material(SHADERS.SolidColor.vs, SHADERS.SolidColor.fs,
     ['model', 'view', 'proj', 'c'], ['position', 'normal']);
+  this.ui_ = new Material(SHADERS.UI.vs, SHADERS.UI.fs,
+    [], ['position', 'normal']);
   var v3 = vec3.create();
   this.identity_ = mat4.create();
   mat4.translate(this.identity_, this.identity_, v3);
 
-  this.materials_ = [this.start_, this.red_, this.ripple_, this.solid_];
+  this.materials_ = [this.start_, this.red_, this.ripple_, this.yellow_, this.solid_];
 
   this.worlds_ = [new StartWorld(this, this.start_, 0), 
                   new RotateWorld(this, this.red_, 1),
-                  new RippleWorld(this, this.ripple_, 2)];
+                  new RippleWorld(this, this.ripple_, 2),
+                  new InvertWorld(this, this.yellow_, 3)];
   this.current_world_ = this.worlds_[0];
   this.world_idx_ = 0;
   this.world_idx_next_ = -1;
@@ -158,28 +176,53 @@ Game.prototype.Start = function() {
 
   document.querySelector('canvas').addEventListener('mousemove', function(e) {
     if (!this.paused_) {
+      var invert = 1;
+      if (this.world_idx_ == 3) invert = -1;
       this.cam_x += (e.movementX || e.mozMovementX ||
                      e.webkitMovementX || 0) * kSensitivity;
       this.cam_y += (e.movementY || e.mozMovementY ||
-                     e.webkitMovementY || 0) * kSensitivity;
-      var rad = Math.sqrt(this.cam_x * this.cam_x + this.cam_y * this.cam_y);
-
-      if (rad > 8.5) {
-        this.cam_x *= (8.5 / rad);
-        this.cam_y *= (8.5 / rad);
-      }
+                     e.webkitMovementY || 0) * kSensitivity * invert;
     }
   }.bind(this));
 
+  this.canvas_.requestPointerLock = this.canvas_.requestPointerLock ||
+             this.canvas_.mozRequestPointerLock ||
+             this.canvas_.webkitRequestPointerLock;
+  this.canvas_.requestPointerLock();
+
   document.querySelector('canvas').addEventListener('mousedown', function(e) {
-    this.canvas_.webkitRequestPointerLock();
+    if (this.lives_ > 0) {
+      this.canvas_.requestPointerLock = this.canvas_.requestPointerLock ||
+                 this.canvas_.mozRequestPointerLock ||
+                 this.canvas_.webkitRequestPointerLock;
+      this.canvas_.requestPointerLock();
+    }
   }.bind(this));
 
   document.querySelector('body').addEventListener('keydown', function(e) {
     if (e.keyCode == 32) {
-      this.world_idx_ = 1;
+      this.world_idx_ = 3;
       this.current_world_ = this.worlds_[this.world_idx_];
     }
+
+    if (e.keyCode == 37) {
+      this.k_left = true;
+    } else if (e.keyCode == 38) {
+      this.k_up = true;
+    } else if (e.keyCode == 39) {
+      this.k_right = true;
+    } else if (e.keyCode == 40) {
+      this.k_down = true;
+    } else if (e.keyCode == 87) {
+      this.k_w = true;
+    } else if (e.keyCode == 65) {
+      this.k_a = true;
+    } else if (e.keyCode == 83) {
+      this.k_s = true;
+    } else if (e.keyCode == 68) {
+      this.k_d = true;
+    }
+
   }.bind(this));
 
   document.querySelector('body').addEventListener('keyup', function(e) {
@@ -187,11 +230,29 @@ Game.prototype.Start = function() {
       this.world_idx_ = 0;
       this.current_world_ = this.worlds_[this.world_idx_];
     }
+
+    if (e.keyCode == 37) {
+      this.k_left = false;
+    } else if (e.keyCode == 38) {
+      this.k_up = false;
+    } else if (e.keyCode == 39) {
+      this.k_right = false;
+    } else if (e.keyCode == 40) {
+      this.k_down = false;
+    } else if (e.keyCode == 87) {
+      this.k_w = false;
+    } else if (e.keyCode == 65) {
+      this.k_a = false;
+    } else if (e.keyCode == 83) {
+      this.k_s = false;
+    } else if (e.keyCode == 68) {
+      this.k_d = false;
+    }
   }.bind(this));
 
   this.paused_ = true;
 
-  this.player_speed_ = 0.2;
+  this.player_speed_ = 50;
 
   return true;
 }
@@ -201,6 +262,19 @@ Game.prototype.Start = function() {
  */
 Game.prototype.Tick = function() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+
+  if (window.innerWidth != this.width ||
+      window.innerHeight != this.height - 80) {
+    this.width = window.innerWidth;
+    this.height = window.innerHeight - 80;
+    this.canvas_.width = this.width;
+    this.canvas_.height = this.height;
+    this.camera_.SetProjectionMatrix(50  * Math.PI / 180.0, this.width / this.height);
+    this.proj_ = this.camera_.GetProjectionMatrix();
+    gl.viewport(0, 0, this.width, this.height);
+  }
+
+  document.querySelector('audio').volume = 0.0;
 
   var now = this.now();
   this.delta_time_ = now - this.last_time_;
@@ -212,7 +286,7 @@ Game.prototype.Tick = function() {
   if (this.delta_time_ > 100)
     this.delta_time_ = 100;
 
-  //this.player_speed_ += Math.sqrt(this.delta_time_) / 100000;
+  this.player_speed_ += this.delta_time_ / 5000;
 
   if (this.world_idx_next_ >= 0) {
     this.world_idx_ = this.world_idx_next_;
@@ -220,12 +294,27 @@ Game.prototype.Tick = function() {
   }
 
   var old_pos = vec3.clone(this.playerpos);
-  var motion = this.delta_time_ / 1000 * 100;
+  var motion = this.delta_time_ / 1000 * this.player_speed_;
   this.playerpos[2] -= motion;
 
-  console.log(this.playerpos);
-
   this.tunnel_gen_.AdvancePlayer(-motion);
+
+  var invert = 1;
+  if (this.world_idx_ == 3) invert = -1;
+  if (this.k_left || this.k_a)
+    this.cam_x -= this.delta_time_ / 60;
+  if (this.k_right || this.k_d)
+    this.cam_x += this.delta_time_ / 60;
+  if (this.k_up || this.k_w)
+    this.cam_y -= this.delta_time_ / 60 * invert;
+  if (this.k_down || this.k_s)
+    this.cam_y += this.delta_time_ / 60 * invert;
+
+  var rad = Math.sqrt(this.cam_x * this.cam_x + this.cam_y * this.cam_y);
+  if (rad > 8.5) {
+    this.cam_x *= (8.5 / rad);
+    this.cam_y *= (8.5 / rad);
+  }
 
   var offset = vec3.create();
   offset[0] = this.cam_x;
@@ -260,7 +349,6 @@ Game.prototype.Tick = function() {
   this.DrawWorld(this.world_idx_);
 
   for (var i = 0; i < portal_renders.length; ++i) {
-    //console.log(portal_renders);
     global_clip = global_clips.shift();
     gl.clear(gl.DEPTH_BUFFER_BIT);// | gl.COLOR_BUFFER_BIT);
     gl.stencilFunc(gl.EQUAL, portal_renders[i] + 1, 255);
@@ -277,7 +365,22 @@ Game.prototype.Tick = function() {
 
   portal_renders.length = 0;
 
-  window.requestAnimationFrame(this.Tick.bind(this));
+  if (!this.stopped_) {
+    window.requestAnimationFrame(this.Tick.bind(this));
+  } else {
+    return;
+  }
+
+  if (this.lives_ <= 0) {
+    document.exitPointerLock = document.exitPointerLock    ||
+                               document.mozExitPointerLock ||
+                               document.webkitExitPointerLock;
+    document.exitPointerLock();
+    var o = document.getElementById('overlay');
+    o.style.display = 'block';
+    o.style.width = this.width + 'px';
+    o.style.height = this.height + 'px';
+  }
 }
 
 Game.prototype.DrawWorld = function(idx) {

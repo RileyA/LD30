@@ -5,6 +5,9 @@
   <script src="resources/shaders.js"></script>
   <script src="js/check_ua.js"></script>
   <script src="js/powerup.js"></script>
+  <script src="js/pickup.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/sfx.js"></script>
   <script src="js/obstacle.js"></script>
   <script src="js/portal.js"></script>
   <script src="js/spline.js"></script>
@@ -13,6 +16,7 @@
   <script src="js/worlds/start.js"></script>
   <script src="js/worlds/ripple.js"></script>
   <script src="js/worlds/rotate.js"></script>
+  <script src="js/worlds/invert.js"></script>
   <script src="js/world.js"></script>
   <script src="js/tunnel_generator.js"></script>
   <script src="js/camera.js"></script>
@@ -21,27 +25,125 @@
   <script src="js/game.js"></script>
   <script src="ld30.js"></script>
 
+  <link href='http://fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>
+
   <style>
-    body {
+    body, div {
       padding: 0;
       margin: 0;
+      overflow: hidden;
+      font-family: 'Roboto';
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
     }
-    canvas {
-      border: 1px solid black;
+    body {
+      min-width: 800px;
+      min-height: 600px;
+    }
+    #container {
       width: 100%;
       height: 100%;
     }
-    #container {
-      //width: 800px;
-      text-align:center;
-      //margin-left: auto;
-      //margin-right: auto;
+    canvas {
+      padding: 0;
+      margin: 0;
     }
+    audio {
+      display: none;
+    }
+
+    #scorebar, #taskbar {
+      height: 40px;
+      background-color: #1f1f1f;
+    }
+    
+    #lives, #prompt {
+      float: left;
+      color: white;
+      font-size: 30px;
+      padding-left: 3%;
+      font-weight: 300;
+      font-family: 'Roboto';
+    }
+
+    #score {
+      float: right;
+      color: white;
+      font-size: 30px;
+      padding-right: 0%;
+      text-align: right;
+      width: 50%;
+      height: 40px;
+      font-weight: 300;
+      font-family: 'Roboto';
+    }
+
+    #score_val, #score_delta, #score_lbl {
+      display: inline-block;
+      width: 30%;
+      font-weight: 300;
+      font-family: 'Roboto';
+    }
+
+    #score_val, #lives_val {
+      font-weight: 400;
+    }
+
+    #score_delta {
+      text-align: left;
+      padding-left: 3%;
+      color: #3f3f3f;
+    }
+
+    #overlay {
+      display: none;
+      position: absolute;
+      top: 40px;
+      left: 0px;
+      background-color: black;
+      opacity: 0.8;
+    }
+
+    #infobox {
+      position: relative;
+      margin-left: auto;
+      margin-right: auto;
+      width: 600px;
+      height: 50%;
+      top: 25%;
+      background-color: #e9eaee;
+      border: 2px solid white;
+      -webkit-border-radius: 10px;
+      -webkit-border-top-left-radius: 20px;
+      -moz-border-radius: 10px;
+      -moz-border-radius-topleft: 20px;
+      border-radius: 10px;
+      border-top-left-radius: 10px;
+    }
+
   </style>
 </head>
 
 <body>
-<div id="container">
-<canvas width="800" height="600"></canvas>
-</div>
+  <div id="scorebar">
+    <div id="score"><div id="score_lbl">Score:</div> <div id="score_val">0</div><div id="score_delta">+0</div></div>
+    <div id="lives">
+    Lives: <span id="lives_val">3</span></div>
+  </div>
+  <div>
+    <div id="overlay">
+      <div id="infobox">
+        <button>Play!</button>
+      </div>
+    </div>
+    <canvas width="800" height="600"></canvas>
+  </div>
+  <div id="taskbar">
+    <div id="prompt">Collect:</div>
+  </div>
+<audio src="audio/music.ogg" autoplay loop volume="0.25"></audio>
 </body>

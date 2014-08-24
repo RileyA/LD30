@@ -99,6 +99,7 @@ Tunnel.prototype.GetTransform = function(t, v, q) {
   v[0] = 0;
   v[1] = 0;
   v[2] = kTunnelLen * t + this.idx * kTunnelLen;
+  console.log(kTunnelLen * t);
 }
 
 global.Tunnel = Tunnel;

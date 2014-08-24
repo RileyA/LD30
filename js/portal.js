@@ -10,11 +10,17 @@ function Portal(game, material, pos, ori, world, world_in) {
   this.material_ = material;
   this.pos_ = pos;
 
+  this.giant_ = Math.random() < 0.05;
+
   var offset = vec3.create();
-  offset[0] = Math.random() - 0.5;
-  offset[1] = Math.random() - 0.5;
-  vec3.normalize(offset, offset);
-  vec3.scale(offset, offset, Math.random() * 8);
+  if (this.giant_) {
+    this.mesh_stencil_ = game.giant_portal_;
+  } else {
+    offset[0] = Math.random() - 0.5;
+    offset[1] = Math.random() - 0.5;
+    vec3.normalize(offset, offset);
+    vec3.scale(offset, offset, Math.random() * 8);
+  }
 
   vec3.transformQuat(pos, pos, ori)
   vec3.add(pos, pos, offset);
@@ -47,22 +53,27 @@ Portal.prototype.Draw = function(game) {
 
   if (game.world_idx_ == this.world_in_.i) {
 
-
     if (Math.abs(this.pos_[2] - pos[2]) < game.last_distance + 0.2) {
-      var t0 = vec3.create();
-      var t1 = vec3.create();
-      var t2 = vec3.create();
-      vec3.add(t0, this.pos_, vec3.fromValues(-3.22977, 2.00921, 0.0));
-      vec3.add(t1, this.pos_, vec3.fromValues(3.22977, 2.00921, 0.0));
-      vec3.add(t2, this.pos_, vec3.fromValues(0.0, -3.35485, 0.0));
-      if (tri_check(pos, t0, t1, t2)) {
+      if (this.giant_) {
         game.world_idx_next_ = this.world_.i;
+        new Sfx("audio/portal.wav", 0.8);
+      } else {
+        var t0 = vec3.create();
+        var t1 = vec3.create();
+        var t2 = vec3.create();
+        vec3.add(t0, this.pos_, vec3.fromValues(-3.22977, 2.00921, 0.0));
+        vec3.add(t1, this.pos_, vec3.fromValues(3.22977, 2.00921, 0.0));
+        vec3.add(t2, this.pos_, vec3.fromValues(0.0, -3.35485, 0.0));
+        if (tri_check(pos, t0, t1, t2)) {
+          game.world_idx_next_ = this.world_.i;
+          new Sfx("audio/portal.wav", 0.8);
+        }
       }
     }
   }
 
-  game.Draw(this.mesh_, this.world_.material(), this.transform_);
-
+  if (!this.giant_)
+    game.Draw(this.mesh_, this.world_.material(), this.transform_);
 
   if (portal_renders.length < kMaxPortalDepth) {
 
@@ -75,6 +86,9 @@ Portal.prototype.Draw = function(game) {
 
     global_clips.push(this.transform_[14]);
   }
+
+  gl.useProgram(this.game_.solid_.program());
+  gl.uniform3f(this.game_.solid_.program().c_uniform, 0.0, 0.0, 0.0);
 
   game.Draw(this.mesh_stencil_, this.game_.solid_, this.transform_);
 

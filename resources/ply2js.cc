@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <cmath>
 
 int main(int argc, char** argv) {
   if (argc < 3)
@@ -44,7 +45,11 @@ int main(int argc, char** argv) {
     std::getline(file, line);
     std::stringstream ss(line);
     float f;
-    for (int i = 0; i < 6; ++i) {
+    for (int i = 0; i < 3; ++i) {
+      ss >> f;
+      std::cout << f << ",";
+    }
+    for (int i = 0; i < 3; ++i) {
       ss >> f;
       std::cout << f << ",";
     }

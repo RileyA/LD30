@@ -11,6 +11,10 @@ function Camera(fov, aspect) {
   this.GetViewMatrix();
 }
 
+Camera.prototype.SetProjectionMatrix = function(fov, aspect) {
+  mat4.perspective(this.projection_, fov, aspect, 0.1, 300.0);
+}
+
 Camera.prototype.GetProjectionMatrix = function() {
   return this.projection_;
 }
