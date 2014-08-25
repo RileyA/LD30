@@ -58,6 +58,22 @@ Obstacle.prototype.Draw = function(game) {
         game.combo_ = null;
         document.getElementById('score_delta').textContent = '+0';
         document.getElementById('score_delta').style.color = '#3f3f3f';
+        document.getElementById('p').style.backgroundColor = '#2f2f2f';
+        document.getElementById('nm').style.backgroundColor = '#2f2f2f';
+        document.getElementById('ico').style.backgroundColor = '#2f2f2f';
+        document.getElementById('p_n').textContent = '0';
+        document.getElementById('nm_n').textContent = '0';
+        document.getElementById('p_d').textContent = '10';
+        document.getElementById('nm_d').textContent = '25';
+        document.getElementById('ico_b_n').textContent = '0';
+        document.getElementById('ico_r_n').textContent = '0';
+        document.getElementById('ico_g_n').textContent = '0';
+        document.getElementById('ico_y_n').textContent = '0';
+        document.getElementById('ico_b_d').textContent = '1';
+        document.getElementById('ico_r_d').textContent = '1';
+        document.getElementById('ico_g_d').textContent = '1';
+        document.getElementById('ico_y_d').textContent = '1';
+
         if (game.lives_ <= 0) {
           game.paused_ = true;
           new Sfx('audio/die.wav', 0.8);

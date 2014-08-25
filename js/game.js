@@ -603,7 +603,7 @@ Game.prototype.AddScore = function(pts, description) {
   var delta = document.getElementById('score_delta');
   delta.textContent = '+' + this.score_pending_;
 
-  var txt = description + '(+' + pts + ')';
+  var txt = description + ' (+' + pts + ')';
 
   if (this.multiplier_ > 1) {
     txt += ' x ' + this.multiplier_ + ' = ' + this.multiplier_ * pts;
@@ -647,23 +647,36 @@ Game.prototype.CheckCombo = function() {
   if (this.combo_.near_misses >= 25 && this.combo_.near_miss_m < 1) {
     this.AddMultiplier(1, 'Lucky!');
     this.combo_.near_miss_m = 1;
+    document.getElementById('nm_d').textContent = 50;
+    document.getElementById('nm').style.backgroundColor = '#113322';
   } else if (this.combo_.near_misses >= 50 && this.combo_.near_miss_m < 2) {
     this.AddMultiplier(3, 'Reckless!');
     this.combo_.near_miss_m = 2;
+    document.getElementById('nm_d').textContent = 100;
+    document.getElementById('nm').style.backgroundColor = '#226644';
   } else if (this.combo_.near_misses >= 100 && this.combo_.near_miss_m < 3) {
     this.AddMultiplier(7, 'Catlike :3');
     this.combo_.near_miss_m = 3;
+    document.getElementById('nm').style.backgroundColor = '#338855';
   }
+
+  document.getElementById('nm_n').textContent = this.combo_.near_misses;
+  document.getElementById('p_n').textContent = this.combo_.portals;
 
   if (this.combo_.portals >= 10 && this.combo_.portal_m < 1) {
     this.AddMultiplier(1, 'Thinking with Portals.');
     this.combo_.portal_m = 1;
+    document.getElementById('p_d').textContent = 25;
+    document.getElementById('p').style.backgroundColor = '#113322';
   } else if (this.combo_.portals >= 25 && this.combo_.portal_m < 2) {
     this.AddMultiplier(3, 'Aperture what?');
     this.combo_.portal_m = 2;
+    document.getElementById('p_d').textContent = 50;
+    document.getElementById('p').style.backgroundColor = '#226644';
   } else if (this.combo_.portals >= 50 && this.combo_.portal_m < 3) {
     this.AddMultiplier(7, 'Omnom Cake.');
     this.combo_.portal_m = 3;
+    document.getElementById('p').style.backgroundColor = '#338855';
   }
 
   if (this.combo_.one_ups >= 5 && this.combo_.one_up_m < 1) {
@@ -681,15 +694,31 @@ Game.prototype.CheckCombo = function() {
   for (var i = 0; i < 4; ++i)
     lcd = Math.min(lcd, this.combo_.shapes[i]);
 
+  document.getElementById('ico_b_n').textContent = this.combo_.shapes[0];
+  document.getElementById('ico_r_n').textContent = this.combo_.shapes[1];
+  document.getElementById('ico_g_n').textContent = this.combo_.shapes[2];
+  document.getElementById('ico_y_n').textContent = this.combo_.shapes[3];
+
   if (lcd >= 25 && this.combo_.shape_m < 3) {
     this.AddMultiplier(7, 'Multifarious!');
     this.combo_.shape_m = 3;
+    document.getElementById('ico').style.backgroundColor = '#338855';
   } else if (lcd >= 10 && this.combo_.shape_m < 2) {
     this.AddMultiplier(3, 'Diversification!');
     this.combo_.shape_m = 2;
+    document.getElementById('ico_b_d').textContent = 25;
+    document.getElementById('ico_r_d').textContent = 25;
+    document.getElementById('ico_g_d').textContent = 25;
+    document.getElementById('ico_y_d').textContent = 25;
+    document.getElementById('ico').style.backgroundColor = '#226644';
   } else if (lcd >= 1 && this.combo_.shape_m < 1) {
     this.AddMultiplier(1, 'Variety!');
     this.combo_.shape_m = 1;
+    document.getElementById('ico_b_d').textContent = 10;
+    document.getElementById('ico_r_d').textContent = 10;
+    document.getElementById('ico_g_d').textContent = 10;
+    document.getElementById('ico_y_d').textContent = 10;
+    document.getElementById('ico').style.backgroundColor = '#113322';
   }
 }
 

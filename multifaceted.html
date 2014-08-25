@@ -192,6 +192,29 @@
       text-align: center;
     }
 
+    .entry {
+      display: inline-block;
+      color: white;
+      font-size: 16px;
+
+      padding-left: 1%;
+      padding-right: 1%;
+
+      margin-top: 7px;
+
+      background-color: #2f2f2f;
+
+      font-weight: 300;
+      font-family: 'Roboto';
+    }
+
+    #task_container {
+      margin-left: auto;
+      margin-right: auto;
+      height: 40px;
+      text-align: center;
+    }
+
   </style>
 </head>
 
@@ -223,7 +246,16 @@
     <canvas width="800" height="600"></canvas>
   </div>
   <div id="taskbar">
-    <div id="ticker"></div>
+    <div id="task_container">
+      <div class="entry">Multipliers:</div>
+      <div class="entry" id="ico">Icospheres:
+        Blue:   <span id="ico_b_n">0</span>/<span id="ico_b_d">1</span>
+        Red:    <span id="ico_r_n">0</span>/<span id="ico_r_d">1</span>
+        Green:  <span id="ico_g_n">0</span>/<span id="ico_g_d">1</span>
+        Yellow: <span id="ico_y_n">0</span>/<span id="ico_y_d">1</span></div>
+      <div class="entry" id="nm">Near Misses: <span id="nm_n">0</span>/<span id="nm_d">25</span></div>
+      <div class="entry" id="p">Portal Trips: <span id="p_n">0</span>/<span id="p_d">10</span></div>
+    </div>
   </div>
 <audio src="audio/music.ogg" autoplay loop volume="0.25"></audio>
 </body>

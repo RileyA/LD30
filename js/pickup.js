@@ -44,7 +44,7 @@ Pickup.prototype.Draw = function(game) {
       if (game.world_idx_ == 1) s = 650;
       if (game.world_idx_ == 2) s = 750;
       if (game.world_idx_ == 3) s = 1000;
-      game.AddScore(s, 'Shape, ' + ['Blue', 'Red', 'Green', 'Yellow'][game.world_idx_]);
+      game.AddScore(s, 'Icosphere, ' + ['Blue', 'Red', 'Green', 'Yellow'][game.world_idx_]);
       game.combo_.shapes[game.world_idx_]++;
       game.CheckCombo();
     }
