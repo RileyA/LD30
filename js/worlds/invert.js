@@ -23,18 +23,20 @@ InvertWorld.prototype.Generate = function(tunnel, progress) {
   for (var i = 0; i < spots.length; ++ i) {
     var r = Math.random();
     if (r < 0.6) {
-      var pos = vec3.create();
-      var ori = quat.create();
-      tunnel.GetTransform(spots[i], pos, ori);
-      tunnel.children_[this.i].push(new Obstacle(this.game_.obstacle_,
-        this.material_, pos, ori));
+      if (this.game_.worlds_explored_[this.i] > 3) {
+        var pos = vec3.create();
+        var ori = quat.create();
+        tunnel.GetTransform(spots[i], pos, ori);
+        tunnel.children_[this.i].push(new Obstacle(this.game_.obstacle_,
+          this.material_, pos, ori));
+      }
     } else if (r < 0.85) {
       var pos = vec3.create();
       var ori = quat.create();
       tunnel.GetTransform(spots[i], pos, ori);
       tunnel.children_[this.i].push(new Pickup(this.game_.pickup_,
         this.material_, pos, ori));
-    } else if (r < 0.86) {
+    } else if (r < 0.855) {
       var pos = vec3.create();
       var ori = quat.create();
       tunnel.GetTransform(spots[i], pos, ori);
@@ -43,7 +45,7 @@ InvertWorld.prototype.Generate = function(tunnel, progress) {
     }
   }
 
-  if (progress % 2) {
+  if (progress % 2 && this.game_.worlds_explored_[this.i] > 4) {
     var w = pick_world(this.i, this.game_.worlds_, progress);
     if (w) {
       this.last_portal_ = true;
@@ -102,7 +104,7 @@ InvertWorld.prototype.Generate = function(tunnel, progress) {
 InvertWorld.prototype.name = function() { return 'Invert'; }
 
 InvertWorld.prototype.min_progress = function() {
-  return 20;
+  return 28;
 }
 
 InvertWorld.prototype.material = function() {

@@ -28,7 +28,7 @@ var SHADERS = {
       '  out_color.x = 0.1 * (0.5 + n.x / 2.0);\n' +
       '  out_color.y = 0.2 + 0.2 * (0.5 + n.y / 2.0);\n' +
       '  out_color.z = 0.1 + 0.7 * (0.9 + n.z / 2.0);\n' +
-      '  gl_FragColor = vec4(out_color * fog_factor, 1.0);\n' +
+      '  gl_FragColor = vec4(out_color * 1.2 * fog_factor, 1.0);\n' +
       '}\n',
   },
   Red : {
@@ -89,14 +89,14 @@ var SHADERS = {
       'void main(void) {\n' +
       '  float fog_factor = clamp((320.0 - length(vs)) / 200.0, 0.0, 1.0);\n' +
       '  vec3 out_color;\n' +
-      '  out_color.x = 0.3 + 0.4 * (0.8 + n.z / 2.0);\n' +
-      '  out_color.y = 0.3 + 0.2 * (0.5 + n.y / 2.0);\n' +
-      '  out_color.z = 0.1 * (0.5 + n.x / 2.0);\n' +
+      '  out_color.x = 0.3 + 0.5 * (0.8 + n.z / 2.0);\n' +
+      '  out_color.y = 0.4 + 0.25 * (0.8 + n.y / 2.0);\n' +
+      '  out_color.z = 0.25 * (0.8 + n.x / 2.0);\n' +
       //'  out_color.x = 0.2 + 0.3 * (1.5 + (n.x + n.y + n.z) / 2.0);\n' +
       //'  out_color.y = 0.5 * (0.5 + n.y / 2.0);\n' +
       //'  out_color.z = 0.1 * (0.9 + n.z / 2.0);\n' +
 
-      '  gl_FragColor = vec4(out_color * 1.2 * fog_factor, 1.0);\n' +
+      '  gl_FragColor = vec4(out_color * 0.9 * fog_factor, 1.0);\n' +
       '}\n',
   },
   Ripple : {

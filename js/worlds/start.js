@@ -13,6 +13,7 @@ function StartWorld(game, material, idx) {
 StartWorld.prototype.Generate = function(tunnel, progress) {
   if (!tunnel.children_[this.i])
     tunnel.children_[this.i] = new Array();
+
   var spots = [40.0 / 160.0,
                60.0 / 160.0,
                100.0 / 160.0,
@@ -22,18 +23,20 @@ StartWorld.prototype.Generate = function(tunnel, progress) {
   for (var i = 0; i < spots.length; ++ i) {
     var r = Math.random();
     if (r < 0.6) {
-      var pos = vec3.create();
-      var ori = quat.create();
-      tunnel.GetTransform(spots[i], pos, ori);
-      tunnel.children_[this.i].push(new Obstacle(this.game_.obstacle_,
-        this.material_, pos, ori));
+      if (this.game_.worlds_explored_[this.i] > 2) {
+        var pos = vec3.create();
+        var ori = quat.create();
+        tunnel.GetTransform(spots[i], pos, ori);
+        tunnel.children_[this.i].push(new Obstacle(this.game_.obstacle_,
+          this.material_, pos, ori));
+      }
     } else if (r < 0.85) {
       var pos = vec3.create();
       var ori = quat.create();
       tunnel.GetTransform(spots[i], pos, ori);
       tunnel.children_[this.i].push(new Pickup(this.game_.pickup_,
         this.material_, pos, ori));
-    } else if (r < 0.86) {
+    } else if (r < 0.852) {
       var pos = vec3.create();
       var ori = quat.create();
       tunnel.GetTransform(spots[i], pos, ori);

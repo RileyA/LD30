@@ -1,9 +1,11 @@
 (function(global) {
 
-function Sfx(filename, volume) {
+function Sfx(filename, volume, r) {
   this.audio_ = document.createElement('audio');
   this.audio_.src = filename;
   this.audio_.volume = volume;
+  if (r)
+    this.audio_.playbackRate = r;
   this.audio_.play();
   this.audio_.addEventListener('ended', this.Ended.bind(this));
 }

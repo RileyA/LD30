@@ -12,6 +12,7 @@
   <script src="js/portal.js"></script>
   <script src="js/spline.js"></script>
   <script src="js/tunnel.js"></script>
+  <script src="js/popup.js"></script>
   <script src="js/world_generator.js"></script>
   <script src="js/worlds/start.js"></script>
   <script src="js/worlds/ripple.js"></script>
@@ -25,7 +26,7 @@
   <script src="js/game.js"></script>
   <script src="ld30.js"></script>
 
-  <link href='http://fonts.googleapis.com/css?family=Roboto:400,300' rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=Roboto:400,300,100italic' rel='stylesheet' type='text/css'>
 
   <style>
     body, div {
@@ -60,8 +61,13 @@
       height: 40px;
       background-color: #1f1f1f;
     }
+
+    img {
+      position: relative;
+      top: 4px;
+    }
     
-    #lives, #prompt {
+    #lives, #prompt, #ticker {
       float: left;
       color: white;
       font-size: 30px;
@@ -70,13 +76,17 @@
       font-family: 'Roboto';
     }
 
+    #ticker {
+      margin-left: 25%;
+    }
+
     #score {
       float: right;
       color: white;
       font-size: 30px;
       padding-right: 0%;
       text-align: right;
-      width: 50%;
+      width: 70%;
       height: 40px;
       font-weight: 300;
       font-family: 'Roboto';
@@ -84,7 +94,7 @@
 
     #score_val, #score_delta, #score_lbl {
       display: inline-block;
-      width: 30%;
+      width: 20%;
       font-weight: 300;
       font-family: 'Roboto';
     }
@@ -99,30 +109,87 @@
       color: #3f3f3f;
     }
 
+    #score_mult {
+      height: 40px;
+      float: right;
+      display: inline-block;
+      text-align: left;
+      padding-right: 5%;
+      color: #88ff88;
+      font-weight: 400;
+      font-family: 'Roboto';
+    }
+
     #overlay {
-      display: none;
       position: absolute;
       top: 40px;
       left: 0px;
-      background-color: black;
-      opacity: 0.8;
+      display: block;
     }
 
-    #infobox {
+    #infobox, #instruction {
       position: relative;
       margin-left: auto;
       margin-right: auto;
+      top: 25%;
+      //background-color: #e9eaee;
+      //border: 2px solid white;
+      //-webkit-border-radius: 10px;
+      //-webkit-border-top-left-radius: 20px;
+      //-moz-border-radius: 10px;
+      //-moz-border-radius-topleft: 20px;
+      //border-radius: 10px;
+      //border-top-left-radius: 10px;
+    }
+
+    #infobox {
+      display: none;
       width: 600px;
       height: 50%;
-      top: 25%;
-      background-color: #e9eaee;
-      border: 2px solid white;
-      -webkit-border-radius: 10px;
-      -webkit-border-top-left-radius: 20px;
-      -moz-border-radius: 10px;
-      -moz-border-radius-topleft: 20px;
-      border-radius: 10px;
-      border-top-left-radius: 10px;
+    }
+
+    #instruction {
+      width: 600px;
+      height: 75%;
+    }
+
+    #shade {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: black;
+      opacity: 0.35;
+    }
+
+    button {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    h1 {
+      font-family: 'Roboto';
+      font-weight: 300;
+      font-size: 48pt;
+      color: white;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-family: 'Roboto';
+      font-weight: 400;
+      font-size: 14pt;
+      color: white;
+      text-align: center;
+    }
+
+    .credit {
+      font-family: 'Roboto';
+      font-weight: 100;
+      text-decoration: italic;
+      font-size: 12pt;
+      color: white;
+      text-align: center;
     }
 
   </style>
@@ -130,20 +197,33 @@
 
 <body>
   <div id="scorebar">
-    <div id="score"><div id="score_lbl">Score:</div> <div id="score_val">0</div><div id="score_delta">+0</div></div>
+    <div id="score"><div id="score_lbl">Score:</div> <div id="score_val">0</div>
+      <div id="score_delta">+0</div><div id="score_mult">x1</div></div>
     <div id="lives">
     Lives: <span id="lives_val">3</span></div>
   </div>
   <div>
     <div id="overlay">
+      <div id="shade"></div>
       <div id="infobox">
-        <button>Play!</button>
+        <h1>GAME OVER</h1>
+        <p><b id="report_card">SCORE: </b></p>
+        <p class="credit" id="hint">Hint: Up and down controls are inverted in the yellow world.</p>
+        <p><b>Click, or press a key to try again!</b></p>
+      </div>
+      <div id="instruction">
+        <h1>MULTIFACETED</h1>
+        <p class="credit">A 48-hour game by Riley Adams</p>
+        <p>Mouse or WASD/arrows to move.</p>
+        <p>Earn points by narrowly dodging obstacles, collecting floating shapes, and entering alternate worlds via portal (warning, physics in alternate worlds will vary!).</p>
+        <p>Earn score multipliers by maintaining long combos of actions without crashing.</p>
+        <p><b>Click, or press a key to begin.</b></p>
       </div>
     </div>
     <canvas width="800" height="600"></canvas>
   </div>
   <div id="taskbar">
-    <div id="prompt">Collect:</div>
+    <div id="ticker"></div>
   </div>
 <audio src="audio/music.ogg" autoplay loop volume="0.25"></audio>
 </body>

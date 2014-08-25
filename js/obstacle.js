@@ -46,16 +46,29 @@ Obstacle.prototype.Draw = function(game) {
       vec3.transformMat4(pos, pos, this.itrans_);
       pos[1] = 0.0;
       var d = vec3.squaredDistance(ob_center, pos);
-      if (d < 2.65) {
-        console.log('HIT');
-        game.paused_ = true;
+      if (d < 1.5) {
         this.hit_ = true;
         --game.lives_;
         document.getElementById('lives_val').textContent = game.lives_;
+        if (game.lives_ <= 1) {
+          document.getElementById('lives_val').style.color = 'red';
+        }
+        game.ApplyScore();
+        game.score_pending_ = 0;
+        game.combo_ = null;
+        document.getElementById('score_delta').textContent = '+0';
+        document.getElementById('score_delta').style.color = '#3f3f3f';
         if (game.lives_ <= 0) {
+          game.paused_ = true;
           new Sfx('audio/die.wav', 0.8);
         } else {
           new Sfx('audio/crash.wav', 0.8);
+          game.crashed_ = true;
+          game.crashed_speed_ = 0.0;
+          game.player_speed_ = (game.player_speed_ - 60) / 2 + 60;
+          game.popups_.push(
+            new Popup('C-C-C-Combo Broken :(', 35, 240, 50, 60,
+            3, document.querySelector('canvas').parentNode));
         }
       } else if (d < 10) {
         this.close_ = true;
@@ -63,12 +76,16 @@ Obstacle.prototype.Draw = function(game) {
 
       if (!this.closed_ && this.close_ && !this.hit_ && pos[2] - this.pos_[0] < -5.0) {
         this.closed_ = true;
-        //new Sfx("audio/nearmiss.wav", 0.5); // TODO
+        new Sfx("audio/near_miss.wav", 0.8); // TODO
+        game.AddScore(250, 'Near Miss!');
+        game.combo_.near_misses++;
+        game.CheckCombo();
       }
     }
   }
 
-  game.Draw(this.mesh_, this.material_, this.transform_);
+  if (!this.hit_)
+    game.Draw(this.mesh_, this.material_, this.transform_);
 }
 
 global.Obstacle = Obstacle;

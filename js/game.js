@@ -37,15 +37,26 @@ function Game(canvas) {
   this.width = canvas.width;
   this.height = canvas.height;
 
+  this.popups_ = [];
+
+  this.worlds_explored_ = [0, 0, 0, 0];
+
+  this.multiplier_ = 1;
+
   this.view_ = mat4.create();
   this.modelview_ = mat4.create();
-  this.paused_ = false;
+  this.lost_mouse_ = false;
 
   this.playerpos = vec3.create();
   this.lives_ = 3;
+  document.getElementById('lives_val').textContent = this.lives_;
+  document.getElementById('lives_val').style.color = 'white';
   this.stopped_ = false;
 
   this.roll_ = 0;
+
+  this.started_ = false;
+  this.ended_ = false;
 
   this.k_down = false;
   this.k_up = false;
@@ -55,6 +66,33 @@ function Game(canvas) {
   this.k_a = false;
   this.k_s = false;
   this.k_d = false;
+
+  //this.score_timer_ = 0.0;
+  this.tick_timer_ = 0.0;
+  this.ticks = [];
+  this.score_pending_ = 0.0;
+  this.score_ = 0;
+
+  this.combo_ = {
+    shapes: [
+      0,
+      0,
+      0,
+      0
+    ],
+    one_ups: 0,
+    near_misses: 0,
+    portals: 0,
+    multiplier: 1,
+    // multiplier levels
+    one_up_m: 0,
+    near_miss_m: 0,
+    shape_m: 0,
+    portal_m: 0,
+  };
+
+  // Keep track of and clean up all the event listeners so we don't leak stuff on restarts.
+  this.listeners_ = [];
 }
 
 /** 
@@ -164,47 +202,74 @@ Game.prototype.Start = function() {
     if (document.pointerLockElement === this.canvas_ ||
         document.mozPointerLockElement === this.canvas_ ||
         document.webkitPointerLockElement === this.canvas_) {
-      this.paused_ = false;
+      this.lost_mouse_ = false;
+      if (!this.started_) {
+        this.started_ = true;
+        document.getElementById('overlay').style.display = 'none';
+        document.querySelector('canvas').addEventListener('mousedown', this.RelockPointer.bind(this));
+        this.listeners_.push(
+          {
+            elem: document.querySelector('canvas'),
+            fn: this.RelockPointer.bind(this),
+            evt: 'mousedown'
+          });
+      }
     } else {
-      this.paused_ = true;
+      this.lost_mouse_ = true;
     }
   }
 
-  document.addEventListener('pointerlockchange', changeCallback.bind(this), false);
-  document.addEventListener('mozpointerlockchange', changeCallback.bind(this), false);
-  document.addEventListener('webkitpointerlockchange', changeCallback.bind(this), false);
+  document.addEventListener('pointerlockchange', changeCallback.bind(this));
+  document.addEventListener('mozpointerlockchange', changeCallback.bind(this));
+  document.addEventListener('webkitpointerlockchange', changeCallback.bind(this));
+  this.listeners_.push(
+    {
+      elem: document,
+      fn: changeCallback.bind(this),
+      evt: 'pointerlockchange'
+    });
+  this.listeners_.push(
+    {
+      elem: document,
+      fn: changeCallback.bind(this),
+      evt: 'mozpointerlockchange'
+    });
+  this.listeners_.push(
+    {
+      elem: document,
+      fn: changeCallback.bind(this),
+      evt: 'webkitpointerlockchange'
+    });
 
-  document.querySelector('canvas').addEventListener('mousemove', function(e) {
-    if (!this.paused_) {
-      var invert = 1;
-      if (this.world_idx_ == 3) invert = -1;
-      this.cam_x += (e.movementX || e.mozMovementX ||
-                     e.webkitMovementX || 0) * kSensitivity;
-      this.cam_y += (e.movementY || e.mozMovementY ||
-                     e.webkitMovementY || 0) * kSensitivity * invert;
+
+    function cam_mov(e) {
+      if (!this.lost_mouse_) {
+        var invert = 1;
+        if (this.world_idx_ == 3) invert = -1;
+        this.cam_x += (e.movementX || e.mozMovementX ||
+                       e.webkitMovementX || 0) * kSensitivity;
+        this.cam_y += (e.movementY || e.mozMovementY ||
+                       e.webkitMovementY || 0) * kSensitivity * invert;
+      }
     }
-  }.bind(this));
 
-  this.canvas_.requestPointerLock = this.canvas_.requestPointerLock ||
-             this.canvas_.mozRequestPointerLock ||
-             this.canvas_.webkitRequestPointerLock;
-  this.canvas_.requestPointerLock();
+  document.querySelector('canvas').addEventListener('mousemove', cam_mov.bind(this));
 
-  document.querySelector('canvas').addEventListener('mousedown', function(e) {
-    if (this.lives_ > 0) {
-      this.canvas_.requestPointerLock = this.canvas_.requestPointerLock ||
-                 this.canvas_.mozRequestPointerLock ||
-                 this.canvas_.webkitRequestPointerLock;
-      this.canvas_.requestPointerLock();
-    }
-  }.bind(this));
+  this.listeners_.push(
+    {
+      elem: document.querySelector('canvas'),
+      fn: cam_mov.bind(this),
+      evt: 'mousemove'
+    });
 
-  document.querySelector('body').addEventListener('keydown', function(e) {
-    if (e.keyCode == 32) {
-      this.world_idx_ = 3;
-      this.current_world_ = this.worlds_[this.world_idx_];
-    }
+  this.lost_mouse_ = true;
+  this.crashed_ = false;
+  this.crashed_speed_ = 0.0;
 
+  // try...
+  //this.RequestPointer();
+
+  function key_down(e) {
     if (e.keyCode == 37) {
       this.k_left = true;
     } else if (e.keyCode == 38) {
@@ -222,15 +287,9 @@ Game.prototype.Start = function() {
     } else if (e.keyCode == 68) {
       this.k_d = true;
     }
+  }
 
-  }.bind(this));
-
-  document.querySelector('body').addEventListener('keyup', function(e) {
-    if (e.keyCode == 32) {
-      this.world_idx_ = 0;
-      this.current_world_ = this.worlds_[this.world_idx_];
-    }
-
+  function key_up(e) {
     if (e.keyCode == 37) {
       this.k_left = false;
     } else if (e.keyCode == 38) {
@@ -248,11 +307,25 @@ Game.prototype.Start = function() {
     } else if (e.keyCode == 68) {
       this.k_d = false;
     }
-  }.bind(this));
+  }
 
-  this.paused_ = true;
+  document.querySelector('body').addEventListener('keydown', key_down.bind(this));
+  document.querySelector('body').addEventListener('keyup', key_up.bind(this));
 
-  this.player_speed_ = 50;
+  this.player_speed_ = 60;
+
+  this.listeners_.push(
+    {
+      elem: document.querySelector('body'),
+      fn: key_up.bind(this),
+      evt: 'keyup'
+    });
+  this.listeners_.push(
+    {
+      elem: document.querySelector('body'),
+      fn: key_down.bind(this),
+      evt: 'keydown'
+    });
 
   return true;
 }
@@ -274,19 +347,45 @@ Game.prototype.Tick = function() {
     gl.viewport(0, 0, this.width, this.height);
   }
 
-  document.querySelector('audio').volume = 0.0;
+  document.querySelector('audio').volume = 0.5;
 
   var now = this.now();
   this.delta_time_ = now - this.last_time_;
   this.last_time_ = now;
 
-  if (this.paused_)
-    this.delta_time_ = 0;
+  this.tick_timer_ -= this.delta_time_ / 1000;
+
+  if (this.tick_timer_ <= 0.0 && this.ticks.length != 0) {
+    var t = document.getElementById('ticker');
+    this.ticks.shift();
+    if (this.ticks.length) 
+      t.textContent = this.ticks[0];
+    else
+      t.textContent = '';
+    if (this.ticks.length == 1)
+      this.tick_timer_ = 1.0;
+    else
+      this.tick_timer_ = 0.2;
+  }
 
   if (this.delta_time_ > 100)
     this.delta_time_ = 100;
 
-  this.player_speed_ += this.delta_time_ / 5000;
+  this.worlds_explored_[this.world_idx_] += this.delta_time_ / 1000;
+
+  if (this.lives_ <= 0 || !this.started_)
+    this.delta_time_ = 0;
+
+  var ds = this.delta_time_ / 1000;
+  for (var i = 0; i < this.popups_.length; ++i) {
+    if (!this.popups_[i].update(ds)) {
+      this.popups_.splice(i, 1);
+      --i;
+    }
+  }
+
+  if (this.player_speed_ < 190)
+    this.player_speed_ += this.delta_time_ / 5000;
 
   if (this.world_idx_next_ >= 0) {
     this.world_idx_ = this.world_idx_next_;
@@ -294,9 +393,39 @@ Game.prototype.Tick = function() {
   }
 
   var old_pos = vec3.clone(this.playerpos);
-  var motion = this.delta_time_ / 1000 * this.player_speed_;
-  this.playerpos[2] -= motion;
 
+  var motion = this.delta_time_ / 1000 * this.player_speed_;
+
+  if (this.crashed_) {
+    if (!this.combo_) {
+      this.combo_ = {
+        shapes: [
+          0,
+          0,
+          0,
+          0
+        ],
+        one_ups: 0,
+        near_misses: 0,
+        portals: 0,
+        multiplier: 1,
+        // multiplier levels
+        one_up_m: 0,
+        near_miss_m: 0,
+        shape_m: 0,
+        portal_m: 0,
+      }
+    }
+
+    this.crashed_speed_ += this.delta_time_ / 4000;
+    if (this.crashed_speed_ >= 1.0) {
+      this.crashed_ = false;
+    } else {
+      motion *= this.crashed_speed_;
+    }
+  }
+
+  this.playerpos[2] -= motion;
   this.tunnel_gen_.AdvancePlayer(-motion);
 
   var invert = 1;
@@ -371,15 +500,59 @@ Game.prototype.Tick = function() {
     return;
   }
 
+  var o = document.getElementById('overlay');
+
+  if (!this.started_ || this.lives_ <= 0) {
+    o.style.display = 'block';
+    o.style.width = this.width + 'px';
+    o.style.height = this.height + 'px';
+  }
+
   if (this.lives_ <= 0) {
+    if (!this.ended_) {
+      this.ended_ = true;
+      for (var i = 0; i < this.popups_.length; ++i) {
+        this.popups_[i].update(9999);
+      }
+      this.popups_ = [];
+      document.getElementById('report_card').textContent = "SCORE: " + this.score_;
+      function restart() {
+        document.querySelector('body').removeEventListener('click', restart);
+        document.querySelector('body').removeEventListener('keydown', restart);
+        document.getElementById('score_val').textContent = '0';
+        document.getElementById('score_mult').textContent = 'x1';
+        game.stopped_ = true;
+
+        // kill all event listeners, idk if this is necessary, but why not?
+        for (var i = 0; i < game.listeners_.length; ++i) {
+          var tmp = game.listeners_[i];
+          tmp.elem.removeEventListener(tmp.evt, tmp.fn);
+        }
+        game.listeners_.length = 0;
+
+        document.getElementById('overlay').style.display = 'none';
+        game = new Game(document.querySelector('canvas'));
+        game.Start();
+        game.Tick();
+        game.RequestPointer();
+      }
+      document.querySelector('body').addEventListener('click', restart);
+      document.querySelector('body').addEventListener('keydown', restart);
+      document.getElementById('hint').textContent = 'Hint: ' +
+        ['Up and down controls are inverted in the yellow world.',
+         'The level rotates in the green and red worlds.',
+         'Using a trackpad? Try a mouse!',
+         'Take the plunge! Use enough portals and you\'ll be awarded score multipliers!',
+         'Take risks! Get enough near misses in one combo to earn score multipliers!',
+         'Diversify! Get shapes from each world in one combo to unlock score multipliers!'][Math.floor(Math.random() * 6)];
+      document.getElementById('infobox').style.display = 'block';
+    }
+
+
     document.exitPointerLock = document.exitPointerLock    ||
                                document.mozExitPointerLock ||
                                document.webkitExitPointerLock;
     document.exitPointerLock();
-    var o = document.getElementById('overlay');
-    o.style.display = 'block';
-    o.style.width = this.width + 'px';
-    o.style.height = this.height + 'px';
   }
 }
 
@@ -422,6 +595,149 @@ Game.prototype.Draw = function(mesh, material, transform, uniforms) {
   // Disable.
   gl.disableVertexAttribArray(material.program().position_attribute);
   gl.disableVertexAttribArray(material.program().normal_attribute);
+}
+
+Game.prototype.AddScore = function(pts, description) {
+  this.score_pending_ += pts * this.multiplier_;
+  //this.score_timer_ = 1.5;
+  var delta = document.getElementById('score_delta');
+  delta.textContent = '+' + this.score_pending_;
+
+  var txt = description + '(+' + pts + ')';
+
+  if (this.multiplier_ > 1) {
+    txt += ' x ' + this.multiplier_ + ' = ' + this.multiplier_ * pts;
+  }
+
+  this.popups_.push(
+    new Popup(txt, 20, 60, 255, 100,
+    2, document.querySelector('canvas').parentNode));
+
+  var goodness = Math.max(this.score_pending_ / 10000 + 0.3, 1.0);
+  delta.style.color = 'rgb(' + Math.round(goodness * 50) + ',' +
+   Math.round(goodness * 250) + ',' + Math.round(goodness * 80) + ')';
+
+  //this.ticks.push(description + '(+' + pts + ')');
+  //if (this.ticks.length == 1) {
+  //  this.tick_timer_ = 1.0;
+  //  var t = document.getElementById('ticker').textContent = this.ticks[0];
+  //} else if (this.tick_timer > 0.2) {
+  //  this.tick_timer_ = 0.2;
+  //}
+}
+
+Game.prototype.AddMultiplier = function(m, description) {
+  this.score_pending_ += this.score_pending_ * m;
+  var delta = document.getElementById('score_delta');
+  delta.textContent = '+' + this.score_pending_;
+  var goodness = Math.max(this.score_pending_ / 10000 + 0.3, 1.0);
+  delta.style.color = 'rgb(' + Math.round(goodness * 50) + ',' +
+   Math.round(goodness * 250) + ',' + Math.round(goodness * 80) + ')';
+
+  new Sfx("audio/multiplier.wav", 1.0);
+  this.multiplier_ += m;
+  document.getElementById('score_mult').textContent = 'x' + this.multiplier_;
+  this.popups_.push(
+    new Popup(description + ' x' + (m + 1) + ' MULTIPLIER!!!', 40, 60, 255, 100,
+    3, document.querySelector('canvas').parentNode));
+}
+
+Game.prototype.CheckCombo = function() {
+  // Look for bonuses
+  if (this.combo_.near_misses >= 25 && this.combo_.near_miss_m < 1) {
+    this.AddMultiplier(1, 'Lucky!');
+    this.combo_.near_miss_m = 1;
+  } else if (this.combo_.near_misses >= 50 && this.combo_.near_miss_m < 2) {
+    this.AddMultiplier(3, 'Reckless!');
+    this.combo_.near_miss_m = 2;
+  } else if (this.combo_.near_misses >= 100 && this.combo_.near_miss_m < 3) {
+    this.AddMultiplier(7, 'Catlike :3');
+    this.combo_.near_miss_m = 3;
+  }
+
+  if (this.combo_.portals >= 10 && this.combo_.portal_m < 1) {
+    this.AddMultiplier(1, 'Thinking with Portals.');
+    this.combo_.portal_m = 1;
+  } else if (this.combo_.portals >= 25 && this.combo_.portal_m < 2) {
+    this.AddMultiplier(3, 'Aperture what?');
+    this.combo_.portal_m = 2;
+  } else if (this.combo_.portals >= 50 && this.combo_.portal_m < 3) {
+    this.AddMultiplier(7, 'Omnom Cake.');
+    this.combo_.portal_m = 3;
+  }
+
+  if (this.combo_.one_ups >= 5 && this.combo_.one_up_m < 1) {
+    this.AddScore(10000, 'Lifeguard!');
+    this.combo_.one_up_m = 1;
+  } else if (this.combo_.one_ups >= 10 && this.combo_.one_up_m < 2) {
+    this.AddScore(100000, 'M.D.');
+    this.combo_.one_up_m = 2;
+  } else if (this.combo_.one_ups >= 25 && this.combo_.one_up_m < 3) {
+    this.AddScore(200000, 'Invincible!');
+    this.combo_.one_up_m = 3;
+  }
+
+  var lcd = 10000;
+  for (var i = 0; i < 4; ++i)
+    lcd = Math.min(lcd, this.combo_.shapes[i]);
+
+  if (lcd >= 25 && this.combo_.shape_m < 3) {
+    this.AddMultiplier(7, 'Multifarious!');
+    this.combo_.shape_m = 3;
+  } else if (lcd >= 10 && this.combo_.shape_m < 2) {
+    this.AddMultiplier(3, 'Diversification!');
+    this.combo_.shape_m = 2;
+  } else if (lcd >= 1 && this.combo_.shape_m < 1) {
+    this.AddMultiplier(1, 'Variety!');
+    this.combo_.shape_m = 1;
+  }
+}
+
+Game.prototype.RequestPointer = function() {
+  this.canvas_.requestPointerLock = this.canvas_.requestPointerLock ||
+             this.canvas_.mozRequestPointerLock ||
+             this.canvas_.webkitRequestPointerLock;
+  this.canvas_.requestPointerLock();
+}
+
+Game.prototype.RelockPointer = function() {
+  if (this.lives_ > 0 && this.started_) {
+    this.canvas_.requestPointerLock = this.canvas_.requestPointerLock ||
+               this.canvas_.mozRequestPointerLock ||
+               this.canvas_.webkitRequestPointerLock;
+    this.canvas_.requestPointerLock();
+  }
+}
+
+Game.prototype.ApplyScore = function() {
+  //this.score_timer_ = 0;
+  this.score_ += this.score_pending_;// * this.multiplier_;
+  this.multiplier_ = 1;
+  this.score_pending_ = 0;
+  var sc = document.getElementById('score_val');
+  sc.textContent = this.score_;
+  var delta = document.getElementById('score_delta');
+  delta.textContent = '+' + this.score_pending_;
+  delta.style.color = '#3f3f3f';
+  this.combo_ = {
+    shapes: [
+      0,
+      0,
+      0,
+      0
+    ],
+    one_ups: 0,
+    near_misses: 0,
+    portals: 0,
+    multiplier: 1,
+    // multiplier levels
+    one_up_m: 0,
+    near_miss_m: 0,
+    shape_m: 0,
+    portal_m: 0,
+  }
+  this.multiplier_ = 1;
+  document.getElementById('score_mult').textContent = 'x1';
 }
 
 global.Game = Game;

@@ -12,13 +12,16 @@ window.onload = function() {
   game.Start();
   game.Tick();
 
-  document.querySelector('button').onclick = function() {
-    game.stopped_ = true;
+  function begin() {
+    document.querySelector('body').removeEventListener('click', begin);
+    document.querySelector('body').removeEventListener('keydown', begin);
     document.getElementById('overlay').style.display = 'none';
-    game = new Game(document.querySelector('canvas'));
-    game.Start();
-    game.Tick();
+    document.getElementById('instruction').style.display = 'none';
+    game.RequestPointer();
   }
+
+  document.querySelector('body').addEventListener('click', begin);
+  document.querySelector('body').addEventListener('keydown', begin);
 }
 
 

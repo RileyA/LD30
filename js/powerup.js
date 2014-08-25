@@ -38,13 +38,17 @@ Powerup.prototype.Draw = function(game) {
       new Sfx('audio/1up.wav', 0.8);
       this.collected_ = true;
       game.lives_++;
+      document.getElementById('lives_val').style.color = 'white';
       document.getElementById('lives_val').textContent = game.lives_;
+      game.AddScore(1000, '1 UP!');
+      game.combo_.one_ups++;
+      game.CheckCombo();
     }
   }
 
   mat4.rotateY(this.transform_, this.transform_, game.delta_time_ / 700);
-  mat4.rotateX(this.transform_, this.transform_, game.delta_time_ / 700);
-  mat4.rotateZ(this.transform_, this.transform_, game.delta_time_ / 700);
+  //mat4.rotateX(this.transform_, this.transform_, game.delta_time_ / 700);
+  //mat4.rotateZ(this.transform_, this.transform_, game.delta_time_ / 700);
 
   gl.useProgram(game.solid_.program());
   gl.uniform3f(game.solid_.program().c_uniform, 0.9, 0.9, 0.9);

@@ -6,8 +6,8 @@ function Pickup(mesh, material, pos, ori) {
 
   this.pos_ = pos;
 
-  if (Math.random() > 0.5)
-    this.square_ = true;
+  //if (Math.random() > 0.5)
+  //  this.square_ = true;
 
   this.collected_ = false;
 
@@ -39,22 +39,29 @@ Pickup.prototype.Draw = function(game) {
     var pos = vec3.clone(game.camera_.position_);
     if (vec3.squaredDistance(this.pos_, pos) < 3.5) {
       this.collected_ = true;
-      new Sfx('audio/pickup.wav', 0.8);
+      new Sfx('audio/pickup2.wav', 0.6);
+      var s = 500;
+      if (game.world_idx_ == 1) s = 650;
+      if (game.world_idx_ == 2) s = 750;
+      if (game.world_idx_ == 3) s = 1000;
+      game.AddScore(s, 'Shape, ' + ['Blue', 'Red', 'Green', 'Yellow'][game.world_idx_]);
+      game.combo_.shapes[game.world_idx_]++;
+      game.CheckCombo();
     }
   }
 
-  mat4.rotateY(this.transform_, this.transform_, game.delta_time_ / 700);
-  mat4.rotateX(this.transform_, this.transform_, game.delta_time_ / 700);
-  mat4.rotateZ(this.transform_, this.transform_, game.delta_time_ / 700);
+  mat4.rotateY(this.transform_, this.transform_, game.delta_time_ / (700 - Math.random() * 100));
+  mat4.rotateX(this.transform_, this.transform_, game.delta_time_ / (700 - Math.random() * 100));
+  mat4.rotateZ(this.transform_, this.transform_, game.delta_time_ / (700 - Math.random() * 100));
 
   //gl.enable(gl.BLEND);
   //gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
   //gl.polygonMode( gl.FRONT_AND_BACK, gl.LINE );
-  if (this.square_) {
-    game.Draw(game.cube_, this.material_, this.transform_);
-  } else {
+  //if (this.square_) {
+  //  game.Draw(game.cube_, this.material_, this.transform_);
+  //} else {
     game.Draw(this.mesh_, this.material_, this.transform_);
-  }
+  //}
   gl.useProgram(game.solid_.program());
   gl.uniform3f(game.solid_.program().c_uniform, 0.75, 0.75, 0.75);
   game.Draw(game.pickup_frame_, game.solid_, this.transform_);

@@ -53,10 +53,13 @@ Portal.prototype.Draw = function(game) {
 
   if (game.world_idx_ == this.world_in_.i) {
 
-    if (Math.abs(this.pos_[2] - pos[2]) < game.last_distance + 0.2) {
+    if (Math.abs(this.pos_[2] - pos[2]) < game.last_distance + 0.8) {
       if (this.giant_) {
         game.world_idx_next_ = this.world_.i;
-        new Sfx("audio/portal.wav", 0.8);
+        new Sfx("audio/portal.wav", 0.5, 1.5);
+        this.game_.AddScore(250, 'Large Portal');
+        game.combo_.portals++;
+        game.CheckCombo();
       } else {
         var t0 = vec3.create();
         var t1 = vec3.create();
@@ -66,7 +69,10 @@ Portal.prototype.Draw = function(game) {
         vec3.add(t2, this.pos_, vec3.fromValues(0.0, -3.35485, 0.0));
         if (tri_check(pos, t0, t1, t2)) {
           game.world_idx_next_ = this.world_.i;
-          new Sfx("audio/portal.wav", 0.8);
+          new Sfx("audio/portal.wav", 0.5, 1.5);
+          this.game_.AddScore(1000, 'Small Portal');
+          game.combo_.portals++;
+          game.CheckCombo();
         }
       }
     }
