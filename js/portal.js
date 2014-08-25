@@ -53,7 +53,7 @@ Portal.prototype.Draw = function(game) {
 
   if (game.world_idx_ == this.world_in_.i) {
 
-    if (Math.abs(this.pos_[2] - pos[2]) < game.last_distance + 0.8) {
+    if (Math.abs(this.pos_[2] - pos[2]) < game.last_distance + 1.45) {
       if (this.giant_) {
         game.world_idx_next_ = this.world_.i;
         new Sfx("audio/portal.wav", 0.5, 1.5);

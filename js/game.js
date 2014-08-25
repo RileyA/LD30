@@ -312,7 +312,7 @@ Game.prototype.Start = function() {
   document.querySelector('body').addEventListener('keydown', key_down.bind(this));
   document.querySelector('body').addEventListener('keyup', key_up.bind(this));
 
-  this.player_speed_ = 60;
+  this.player_speed_ = 55;
 
   this.listeners_.push(
     {
@@ -384,8 +384,8 @@ Game.prototype.Tick = function() {
     }
   }
 
-  if (this.player_speed_ < 190)
-    this.player_speed_ += this.delta_time_ / 5000;
+  if (this.player_speed_ < 200)
+    this.player_speed_ += this.delta_time_ / 6000;
 
   if (this.world_idx_next_ >= 0) {
     this.world_idx_ = this.world_idx_next_;

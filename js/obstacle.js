@@ -66,8 +66,14 @@ Obstacle.prototype.Draw = function(game) {
           game.crashed_ = true;
           game.crashed_speed_ = 0.0;
           game.player_speed_ = (game.player_speed_ - 60) / 2 + 60;
+
+          var fails = [
+            'C-C-C-Combo Broken (Lives -1)',
+            'Owww! (Lives -1)',
+          ];
+
           game.popups_.push(
-            new Popup('C-C-C-Combo Broken :(', 35, 240, 50, 60,
+            new Popup(fails[Math.floor(Math.random() * fails.length)], 35, 240, 50, 60,
             3, document.querySelector('canvas').parentNode));
         }
       } else if (d < 10) {
